@@ -1,0 +1,12 @@
+example/
+.vscode/
+.idea/
+coverage/
+*.log
+*.swp
+*.swo
+.DS_Store
+tsconfig.json
+tsconfig.build.json
+.eslintrc.js
+.prettierrc.js
