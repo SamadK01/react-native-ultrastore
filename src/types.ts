@@ -2,6 +2,9 @@
  * UltraStore Types
  */
 
+// Global type declarations
+declare const __DEV__: boolean;
+
 export type Listener<T> = (value: T) => void;
 
 export interface StoreConfig {

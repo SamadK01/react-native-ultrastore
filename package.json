@@ -1,10 +1,10 @@
 {
   "name": "react-native-ultrastore",
-  "version": "1.0.0",
+  "version": "2.0.0-alpha.0",
   "description": "Ultra fast storage + state manager for React Native with MMKV, hooks, namespaces, middleware, and encryption.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
-  "types": "lib/typescript/index.d.ts",
+  "types": "src/index.ts",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
   "files": [
@@ -57,14 +57,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/react-native-ultrastore.git"
+    "url": "git+https://github.com/SamadK01/react-native-ultrastore.git"
   },
-  "author": "Your Name <your.email@example.com>",
+  "author": "Samad Khan <samadkhan@example.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yourusername/react-native-ultrastore/issues"
+    "url": "https://github.com/SamadK01/react-native-ultrastore/issues"
   },
-  "homepage": "https://github.com/yourusername/react-native-ultrastore#readme",
+  "homepage": "https://github.com/SamadK01/react-native-ultrastore#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
@@ -90,12 +90,13 @@
     "react-native": "*"
   },
   "dependencies": {
-    "react-native-mmkv": "^2.12.2"
+    "react-native-mmkv": "^2.10.0",
+    "@react-native-async-storage/async-storage": "^1.21.0",
+    "@tanstack/react-query": "^5.0.0",
+    "react-native-sqlite-storage": "^6.0.1",
+    "expo-secure-store": "~12.5.0",
+    "flipper-plugin-ultrastore": "^0.1.0"
   },
-  "workspaces": [
-    "example"
-  ],
-  "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
@@ -138,13 +139,7 @@
     "output": "lib",
     "targets": [
       "commonjs",
-      "module",
-      [
-        "typescript",
-        {
-          "project": "tsconfig.build.json"
-        }
-      ]
+      "module"
     ]
   }
 }
