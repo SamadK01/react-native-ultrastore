@@ -1,24 +1,75 @@
 /**
  * UltraStore Storage Engine
- * Powered by react-native-mmkv
+ * Powered by react-native-mmkv v4 + Nitro Modules
  */
 
 import { MMKV } from 'react-native-mmkv';
+import { Platform } from 'react-native';
 import type { UltraStoreOptions, Middleware } from './types';
 
+// In-memory fallback for Expo Go
+const memoryStorage = new Map<string, string>();
+
 class StorageEngine {
-  private storage: MMKV;
+  private storage: any;
+  private isFallback: boolean = false;
   private middlewares: Middleware[] = [];
   private debug: boolean = false;
 
   constructor(options?: UltraStoreOptions) {
-    this.storage = new MMKV({
-      id: options?.id || 'ultrastore-default',
-      encryptionKey: options?.encryptionKey,
-    });
+    this.initializeStorage(options);
 
     if (__DEV__) {
-      this.log('StorageEngine initialized', options);
+      this.log('StorageEngine initialized', {
+        id: options?.id,
+        fallback: this.isFallback,
+        platform: Platform.OS
+      });
+    }
+  }
+
+  private initializeStorage(options?: UltraStoreOptions) {
+    // 1. Web Fallback
+    if (Platform.OS === 'web') {
+      this.isFallback = true;
+      this.storage = {
+        getString: (key: string) => localStorage.getItem(key),
+        set: (key: string, value: string) => localStorage.setItem(key, value),
+        remove: (key: string) => localStorage.removeItem(key),
+        contains: (key: string) => localStorage.getItem(key) !== null,
+        clearAll: () => localStorage.clear(),
+        getAllKeys: () => Object.keys(localStorage),
+      };
+      return;
+    }
+
+    // 2. MMKV v4 Initialization with Expo Go Fallback
+    try {
+      // MMKV v4 recommended way is createMMKV, but class also works.
+      // We check if native MMKV is available.
+      this.storage = new MMKV({
+        id: options?.id || 'ultrastore-default',
+        encryptionKey: options?.encryptionKey,
+      });
+
+      // Verification check (will throw in Expo Go)
+      this.storage.getAllKeys();
+    } catch (error) {
+      this.isFallback = true;
+      if (__DEV__) {
+        console.warn(
+          '[UltraStore] MMKV native module not found. Falling back to in-memory store. ' +
+          'Persistence will not work in Expo Go. Use a development build for full features.'
+        );
+      }
+      this.storage = {
+        getString: (key: string) => memoryStorage.get(key),
+        set: (key: string, value: string) => memoryStorage.set(key, value),
+        remove: (key: string) => memoryStorage.delete(key),
+        contains: (key: string) => memoryStorage.has(key),
+        clearAll: () => memoryStorage.clear(),
+        getAllKeys: () => Array.from(memoryStorage.keys()),
+      };
     }
   }
 
@@ -89,9 +140,14 @@ class StorageEngine {
    */
   delete(key: string): void {
     try {
-      this.storage.delete(key);
-      this.log('DELETE', key);
+      // MMKV v4 uses .remove() instead of .delete()
+      if (typeof this.storage.remove === 'function') {
+        this.storage.remove(key);
+      } else {
+        this.storage.delete(key);
+      }
 
+      this.log('DELETE', key);
       this.middlewares.forEach((m) => m.onDelete?.(key));
     } catch (error) {
       console.error(`[UltraStore] Error deleting key "${key}":`, error);

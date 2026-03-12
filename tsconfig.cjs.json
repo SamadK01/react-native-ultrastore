@@ -1,28 +1,27 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "esnext",
-    "lib": ["es2017"],
+    "target": "es5",
+    "module": "commonjs",
+    "lib": ["es6", "es2017", "esnext"],
     "jsx": "react-native",
-    "noEmit": false,
-    "isolatedModules": true,
-    "strict": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./lib/module",
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "outDir": "./lib/commonjs",
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
       "*": ["src/*", "node_modules/*"]
     },
+    "declaration": true,
+    "declarationMap": true,
     "sourceMap": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "lib", "example", "**/__tests__", "**/__fixtures__", "**/__mocks__"]
+  "exclude": ["node_modules", "**/__tests__", "**/__fixtures__", "**/__mocks__"]
 }

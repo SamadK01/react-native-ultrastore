@@ -1,8 +1,25 @@
 # Migration Guide
 
-Guide for migrating to react-native-ultrastore from other solutions.
+## From UltraStore v1 to v2 (New Architecture)
+
+UltraStore v2.0.0 is a major upgrade. Please follow these steps to migrate.
+
+### 1. Update Dependencies
+```bash
+npm install react-native-mmkv@>=4.0.0 react-native-nitro-modules@>=0.35.0
+```
+UltraStore v2 requires **React Native 0.75+** because MMKV v4 is a Nitro Module.
+
+### 2. Native Code Changes
+If you were using `StorageEngine.delete(key)`, no code changes are needed! It now calls MMKV's new `.remove(key)` internally, maintaining backward compatibility.
+
+### 3. New Architecture
+If you are moving to the New Architecture (Fabric), UltraStore v2 is **bridge-free** and requires zero manual configuration.
+
+---
 
 ## From AsyncStorage
+... (rest of the content)
 
 ### Before (AsyncStorage)
 

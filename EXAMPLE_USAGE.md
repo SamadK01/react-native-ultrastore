@@ -1,4 +1,4 @@
-# UltraStore Example Usage
+# UltraStore Example Usage (v2.0.0)
 
 ## Basic Usage
 
@@ -27,207 +27,107 @@ function UserProfile() {
           token: 'abc123' 
         })}
       />
-      
-      <Button
-        title="Update Name Only"
-        onPress={() => setUser(prev => ({ ...prev, name: 'Ali' }))}
-      />
     </View>
   );
 }
 ```
 
-## Advanced: Selectors (Optimized Re-renders)
+## Atomic State (Atoms)
+
+Atoms are small, composable units of state inspired by Jotai.
 
 ```tsx
-import { useUltraStoreSelector } from 'react-native-ultrastore';
+import { createAtom, useUltraAtom } from 'react-native-ultrastore';
 
-function UserName() {
-  // Only re-renders when user.name changes
-  const userName = useUltraStoreSelector(
-    'user',
-    (user) => user.name,
-    { name: '', email: '', token: '' }
+// Define atoms
+const themeAtom = createAtom('app_theme', 'light');
+const fontSizeAtom = createAtom('font_size', 16);
+
+function Settings() {
+  const [theme, setTheme] = useUltraAtom(themeAtom);
+  const [fontSize, setFontSize] = useUltraAtom(fontSizeAtom);
+
+  return (
+    <View>
+      <Text>Theme: {theme}</Text>
+      <Button title="Toggle Theme" onPress={() => setTheme(t => t === 'light' ? 'dark' : 'light')} />
+    </View>
   );
-
-  return <Text>{userName}</Text>;
 }
 ```
 
-## Advanced: Namespaces
+## Batch Updates
+
+Update multiple keys at once with zero bridge overhead and minimal re-renders.
 
 ```tsx
-import { createNamespace, useUltraStore } from 'react-native-ultrastore';
+import { batchSet, useBatchUpdate } from 'react-native-ultrastore';
 
-// Create separate namespaces
-const userStorage = createNamespace('user');
-const cartStorage = createNamespace('cart');
-
-function App() {
-  const [profile, setProfile] = useUltraStore('profile', {}, userStorage);
-  const [items, setItems] = useUltraStore('items', [], cartStorage);
-
-  // These stores are completely isolated
-  return <View>...</View>;
-}
-```
-
-## Advanced: Middleware (Logging)
-
-```tsx
-import { defaultStorage, createLoggerMiddleware } from 'react-native-ultrastore';
-
-// Enable logging in development
-if (__DEV__) {
-  defaultStorage.use(createLoggerMiddleware({ collapsed: true }));
-}
-```
-
-## Advanced: Validation
-
-```tsx
-import { defaultStorage, createValidatorMiddleware } from 'react-native-ultrastore';
-
-defaultStorage.use(
-  createValidatorMiddleware({
-    user: (value) => {
-      if (!value.name) return 'Name is required';
-      if (!value.email) return 'Email is required';
-      return true;
-    },
-  })
-);
-```
-
-## Advanced: Encryption
-
-```tsx
-import { createStorage, useUltraStore } from 'react-native-ultrastore';
-
-// Create encrypted storage for sensitive data
-const secureStorage = createStorage({ 
-  id: 'secure',
-  encryptionKey: 'your-encryption-key-here' 
-});
-
-function SecureData() {
-  const [token, setToken] = useUltraStore('auth-token', '', secureStorage);
-  
-  return <View>...</View>;
-}
-```
-
-## Utility Functions
-
-```tsx
-import { clearAll, removeKey, getAllKeys } from 'react-native-ultrastore';
-
-// Clear all data (e.g., on logout)
-clearAll();
-
-// Remove specific key
-removeKey('user');
-
-// Get all stored keys
-const keys = getAllKeys();
-console.log(keys); // ['user', 'cart', 'settings']
-```
-
-## Read-Only / Write-Only Hooks
-
-```tsx
-import { useUltraStoreValue, useUltraStoreSetter } from 'react-native-ultrastore';
-
-// Read-only (no re-render on update from this component)
-function DisplayUser() {
-  const user = useUltraStoreValue('user', { name: '' });
-  return <Text>{user.name}</Text>;
+// Functional update
+function bulkUpdate() {
+  batchSet({
+    'is_logged_in': true,
+    'last_login': Date.now(),
+    'session_count': 5
+  });
 }
 
-// Write-only (no re-render when value changes)
-function UpdateUser() {
-  const setUser = useUltraStoreSetter('user', { name: '' });
-  
+// Hook usage
+function BulkComponent() {
+  const updateStore = useBatchUpdate();
+
   return (
     <Button 
-      title="Update" 
-      onPress={() => setUser({ name: 'New Name' })} 
+      title="Batch Update" 
+      onPress={() => updateStore({ key1: 'val1', key2: 'val2' })} 
     />
   );
 }
 ```
 
-## TypeScript Support
+## Zustand Adapter
 
-```tsx
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  age: number;
-}
+Use UltraStore as a blazing fast persistence layer for Zustand.
 
-function TypedExample() {
-  const [user, setUser] = useUltraStore<User>('user', {
-    id: '',
-    name: '',
-    email: '',
-    age: 0,
-  });
+```ts
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { createUltraZustandStorage } from 'react-native-ultrastore/zustand';
 
-  // Full type safety and autocomplete
-  setUser({
-    id: '1',
-    name: 'Samad',
-    email: 'samad@example.com',
-    age: 25,
-  });
-
-  return <Text>{user.name}</Text>;
-}
+const useStore = create(
+  persist(
+    (set) => ({
+      count: 0,
+      inc: () => set((state) => ({ count: state.count + 1 })),
+    }),
+    {
+      name: 'zustand-storage',
+      storage: createJSONStorage(() => createUltraZustandStorage()),
+    }
+  )
+);
 ```
 
-## Shopping Cart Example
+## DevTools
+
+Inspect state changes in real-time.
+
+```ts
+import { defaultStorage, createDevToolsMiddleware } from 'react-native-ultrastore';
+
+if (__DEV__) {
+  defaultStorage.use(createDevToolsMiddleware());
+}
+// Now check global.__ULTRASTORE_STATE__ in your console!
+```
+
+## Fallbacks (Expo Go & Web)
+
+UltraStore handles environments gracefully:
+- **Expo Go:** Automatically uses an in-memory store so your app doesn't crash.
+- **Web:** Automatically uses `localStorage`.
 
 ```tsx
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-function ShoppingCart() {
-  const [cart, setCart] = useUltraStore<CartItem[]>('cart', []);
-
-  const addItem = (item: CartItem) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, item];
-    });
-  };
-
-  const removeItem = (id: string) => {
-    setCart(prev => prev.filter(i => i.id !== id));
-  };
-
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  return (
-    <View>
-      <Text>Total: ${total}</Text>
-      {cart.map(item => (
-        <View key={item.id}>
-          <Text>{item.name} x {item.quantity}</Text>
-          <Button title="Remove" onPress={() => removeItem(item.id)} />
-        </View>
-      ))}
-    </View>
-  );
-}
+// Same code works everywhere!
+const [data, setData] = useUltraStore('any_key', 'initial');
 ```
