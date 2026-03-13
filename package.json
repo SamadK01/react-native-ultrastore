@@ -1,6 +1,6 @@
 {
   "name": "react-native-ultrastore",
-  "version": "2.0.0",
+  "version": "2.0.3",
   "description": "Ultra fast storage + state manager for React Native with MMKV v4, Nitro Modules, Atoms, and Zustand support.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -60,7 +60,7 @@
     "type": "git",
     "url": "git+https://github.com/SamadK01/react-native-ultrastore.git"
   },
-  "author": "Samad Khan <samadkhan@example.com>",
+  "author": "Samad Khalid <samadkhalid@example.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/SamadK01/react-native-ultrastore/issues"
