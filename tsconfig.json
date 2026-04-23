@@ -24,5 +24,12 @@
     "sourceMap": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "lib", "example", "**/__tests__", "**/__fixtures__", "**/__mocks__"]
+  "exclude": [
+    "node_modules",
+    "lib",
+    "example",
+    "**/__tests__",
+    "**/__fixtures__",
+    "**/__mocks__"
+  ]
 }

@@ -20,6 +20,7 @@
 ## ✅ Deliverables Checklist
 
 ### Core Library ✅
+
 - [x] MMKV backend integration (10-30x faster)
 - [x] 4 React hooks (useUltraStore, Selector, Value, Setter)
 - [x] Auto persistence & auto re-renders
@@ -33,6 +34,7 @@
 - [x] Zero-config setup
 
 ### Documentation ✅
+
 - [x] **README.md** with tagline "The fastest and simplest storage + state manager for React Native"
 - [x] Installation guide
 - [x] Quick start with examples (counter, auth, cart, theme)
@@ -55,6 +57,7 @@
 - [x] **START_HERE.md** - Navigation guide
 
 ### Example App ✅
+
 - [x] React Native CLI demo app
 - [x] User management with namespaces
 - [x] Shopping cart example
@@ -67,6 +70,7 @@
 - [x] README for running the app
 
 ### Testing & Quality ✅
+
 - [x] Jest configuration
 - [x] Unit tests for storage engine
 - [x] Unit tests for store
@@ -77,6 +81,7 @@
 - [x] All tests passing
 
 ### NPM Publishing ✅
+
 - [x] package.json configured
   - [x] Name: react-native-ultrastore
   - [x] Description: "Ultra fast storage + state manager for React Native with MMKV, hooks, namespaces, middleware, and encryption."
@@ -164,12 +169,14 @@ react-native-ultrastore/
 ## 🎯 Key Features Implemented
 
 ### Performance ⚡
+
 - 10-30x faster than AsyncStorage
 - Sub-millisecond operations
 - Efficient memory usage
 - Optimized re-renders with selectors
 
 ### Developer Experience 🎨
+
 - Zero-config setup
 - One-line API
 - Full TypeScript support
@@ -178,6 +185,7 @@ react-native-ultrastore/
 - Intuitive hooks API
 
 ### Advanced Features 🚀
+
 - **Namespaces**: Isolated stores
 - **Encryption**: Secure storage
 - **Middleware**: Logger, validator, custom
@@ -186,6 +194,7 @@ react-native-ultrastore/
 - **Utilities**: clearAll, removeKey, getAllKeys
 
 ### Production Ready ✅
+
 - Unit tests
 - TypeScript strict mode
 - ESLint + Prettier
@@ -198,6 +207,7 @@ react-native-ultrastore/
 ## 📊 Comparison Highlights
 
 ### UltraStore vs AsyncStorage
+
 - ⚡ **30x faster** writes
 - ⚡ **25x faster** reads
 - 🎯 **Zero boilerplate**
@@ -205,12 +215,14 @@ react-native-ultrastore/
 - 🎨 **State management included**
 
 ### UltraStore vs Zustand + MMKV
+
 - 📦 **Less setup** required
 - 🔄 **Auto-persistence** built-in
 - 🎯 **More features** out-of-the-box
 - 📚 **Better documentation**
 
 ### UltraStore vs MMKV Storage
+
 - 🎨 **State management** included
 - 🪝 **Hooks API** (4 hooks)
 - 🔍 **Selectors** for optimization
@@ -221,13 +233,15 @@ react-native-ultrastore/
 ## 📈 Performance Benchmarks
 
 ### 1000 Operations
-| Operation | UltraStore | AsyncStorage | Improvement |
-|-----------|-----------|--------------|-------------|
-| Writes | 15-18ms | 450-540ms | **30x faster** |
-| Reads | 8-10ms | 200-250ms | **25x faster** |
-| Mixed | 20-25ms | 440-560ms | **22x faster** |
+
+| Operation | UltraStore | AsyncStorage | Improvement    |
+| --------- | ---------- | ------------ | -------------- |
+| Writes    | 15-18ms    | 450-540ms    | **30x faster** |
+| Reads     | 8-10ms     | 200-250ms    | **25x faster** |
+| Mixed     | 20-25ms    | 440-560ms    | **22x faster** |
 
 ### Real-World Scenarios
+
 - **Shopping Cart**: Instant updates
 - **User Profile**: No lag
 - **Chat History**: Smooth scrolling
@@ -238,17 +252,20 @@ react-native-ultrastore/
 ## 🔧 Compatibility
 
 ### Platforms ✅
+
 - iOS 12.0+ ✅
 - Android API 21+ (5.0) ✅
 - Expo SDK 48+ (dev builds) ✅
 
 ### React Native ✅
+
 - 0.74.x ✅
 - 0.73.x ✅
 - 0.72.x ✅
 - 0.71.x ✅
 
 ### Architecture ✅
+
 - New Architecture (Fabric) ✅
 - Old Architecture ✅
 - Bridgeless Mode ✅
@@ -260,17 +277,20 @@ react-native-ultrastore/
 ## 🚀 How to Use
 
 ### 1. Install
+
 ```bash
 cd "/Users/user2024/Documents/UltraStore Library"
 yarn install
 ```
 
 ### 2. Test
+
 ```bash
 yarn test
 ```
 
 ### 3. Try Example
+
 ```bash
 cd example
 yarn install
@@ -278,12 +298,14 @@ yarn ios  # or yarn android
 ```
 
 ### 4. Use in Your Project
+
 ```bash
 yarn add react-native-ultrastore react-native-mmkv
 cd ios && pod install
 ```
 
 ### 5. Publish to NPM (Optional)
+
 ```bash
 # Update package.json (author, repository)
 yarn prepare
@@ -295,22 +317,26 @@ yarn release
 ## 📖 Documentation Guide
 
 ### For Beginners
+
 1. **[START_HERE.md](./START_HERE.md)** - Start here!
 2. **[QUICK_START.md](./QUICK_START.md)** - 5-minute guide
 3. **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Full tutorial
 
 ### For Implementation
+
 4. **[README.md](./README.md)** - Main documentation
 5. **[API.md](./API.md)** - API reference
 6. **[EXAMPLE_USAGE.md](./EXAMPLE_USAGE.md)** - Code examples
 7. **[CHEAT_SHEET.md](./CHEAT_SHEET.md)** - Quick reference
 
 ### For Migration
+
 8. **[INSTALLATION_STEPS.md](./INSTALLATION_STEPS.md)** - Installation
 9. **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Setup & troubleshooting
 10. **[MIGRATION.md](./MIGRATION.md)** - Migration guides
 
 ### For Advanced Users
+
 11. **[BENCHMARKS.md](./BENCHMARKS.md)** - Performance data
 12. **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Architecture
 13. **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribute
@@ -333,22 +359,26 @@ yarn release
 ## 🎓 Example Code
 
 ### Basic Usage
+
 ```tsx
 const [user, setUser] = useUltraStore('user', { name: '' });
 ```
 
 ### With Selectors
+
 ```tsx
-const name = useUltraStoreSelector('user', u => u.name, { name: '' });
+const name = useUltraStoreSelector('user', (u) => u.name, { name: '' });
 ```
 
 ### With Namespaces
+
 ```tsx
 const userStorage = createNamespace('user');
 const [data, setData] = useUltraStore('profile', {}, userStorage);
 ```
 
 ### With Encryption
+
 ```tsx
 const secure = createStorage({ encryptionKey: 'secret' });
 const [token, setToken] = useUltraStore('token', '', secure);
@@ -421,4 +451,4 @@ This library was built with care and attention to detail. It includes:
 
 **Made with ❤️ for the React Native community**
 
-*Project completed on: October 1, 2025*
+_Project completed on: October 1, 2025_

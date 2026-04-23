@@ -8,24 +8,26 @@ import { View, Text, Button } from 'react-native';
 import { useUltraStore } from 'react-native-ultrastore';
 
 function UserProfile() {
-  const [user, setUser] = useUltraStore('user', { 
-    name: '', 
+  const [user, setUser] = useUltraStore('user', {
+    name: '',
     email: '',
-    token: '' 
+    token: '',
   });
 
   return (
     <View>
       <Text>Name: {user.name}</Text>
       <Text>Email: {user.email}</Text>
-      
+
       <Button
         title="Update User"
-        onPress={() => setUser({ 
-          name: 'Samad', 
-          email: 'samad@example.com',
-          token: 'abc123' 
-        })}
+        onPress={() =>
+          setUser({
+            name: 'Samad',
+            email: 'samad@example.com',
+            token: 'abc123',
+          })
+        }
       />
     </View>
   );
@@ -50,7 +52,10 @@ function Settings() {
   return (
     <View>
       <Text>Theme: {theme}</Text>
-      <Button title="Toggle Theme" onPress={() => setTheme(t => t === 'light' ? 'dark' : 'light')} />
+      <Button
+        title="Toggle Theme"
+        onPress={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
+      />
     </View>
   );
 }
@@ -66,9 +71,9 @@ import { batchSet, useBatchUpdate } from 'react-native-ultrastore';
 // Functional update
 function bulkUpdate() {
   batchSet({
-    'is_logged_in': true,
-    'last_login': Date.now(),
-    'session_count': 5
+    is_logged_in: true,
+    last_login: Date.now(),
+    session_count: 5,
   });
 }
 
@@ -77,9 +82,9 @@ function BulkComponent() {
   const updateStore = useBatchUpdate();
 
   return (
-    <Button 
-      title="Batch Update" 
-      onPress={() => updateStore({ key1: 'val1', key2: 'val2' })} 
+    <Button
+      title="Batch Update"
+      onPress={() => updateStore({ key1: 'val1', key2: 'val2' })}
     />
   );
 }
@@ -113,7 +118,10 @@ const useStore = create(
 Inspect state changes in real-time.
 
 ```ts
-import { defaultStorage, createDevToolsMiddleware } from 'react-native-ultrastore';
+import {
+  defaultStorage,
+  createDevToolsMiddleware,
+} from 'react-native-ultrastore';
 
 if (__DEV__) {
   defaultStorage.use(createDevToolsMiddleware());
@@ -124,6 +132,7 @@ if (__DEV__) {
 ## Fallbacks (Expo Go & Web)
 
 UltraStore handles environments gracefully:
+
 - **Expo Go:** Automatically uses an in-memory store so your app doesn't crash.
 - **Web:** Automatically uses `localStorage`.
 

@@ -18,7 +18,8 @@ class Store<T = any> {
 
     // Load persisted value or use initial value
     const persistedValue = this.storage.get<T>(key);
-    this.currentValue = persistedValue !== undefined ? persistedValue : initialValue;
+    this.currentValue =
+      persistedValue !== undefined ? persistedValue : initialValue;
 
     // If no persisted value, save initial value
     if (persistedValue === undefined) {

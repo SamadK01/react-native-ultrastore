@@ -1,4 +1,4 @@
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV, type MMKV } from 'react-native-mmkv';
 import { StorageAdapter, StorageAdapterOptions } from './types';
 
 export class MMKVAdapter implements StorageAdapter {
@@ -9,14 +9,16 @@ export class MMKVAdapter implements StorageAdapter {
   constructor(options: StorageAdapterOptions = {}) {
     this.namespace = options.namespace || 'ultrastore';
     this.debug = options.debug || false;
-    
-    this.storage = new MMKV({
+
+    this.storage = createMMKV({
       id: this.namespace,
       encryptionKey: options.encryptionKey,
     });
 
     if (this.debug) {
-      console.log(`[MMKVAdapter] Initialized with namespace: ${this.namespace}`);
+      console.log(
+        `[MMKVAdapter] Initialized with namespace: ${this.namespace}`
+      );
     }
   }
 
@@ -28,7 +30,9 @@ export class MMKVAdapter implements StorageAdapter {
     try {
       const fullKey = this.getKey(key);
       const value = this.storage.getString(fullKey);
-      if (value === undefined) return null;
+      if (value === undefined) {
+        return null;
+      }
       return JSON.parse(value) as T;
     } catch (error) {
       if (this.debug) {
@@ -54,7 +58,7 @@ export class MMKVAdapter implements StorageAdapter {
   async remove(key: string): Promise<void> {
     try {
       const fullKey = this.getKey(key);
-      this.storage.delete(fullKey);
+      this.storage.remove(fullKey);
     } catch (error) {
       if (this.debug) {
         console.error(`[MMKVAdapter] Error removing key ${key}:`, error);

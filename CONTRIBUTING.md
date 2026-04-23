@@ -93,6 +93,7 @@ git commit -m "feat: add new feature"
 ```
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation changes
@@ -130,6 +131,7 @@ git push origin feature/your-feature-name
 ## Questions?
 
 Feel free to open an issue for:
+
 - Bug reports
 - Feature requests
 - Questions about the codebase

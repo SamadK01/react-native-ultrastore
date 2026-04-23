@@ -26,6 +26,10 @@ export { batchSet, useBatchUpdate } from './batch';
 // Zustand Adapter (New in v2)
 export { createUltraZustandStorage } from './zustand';
 
+// Migrations (New in Advanced)
+export { createMigrationManager } from './migrations';
+export type { MigrationConfig, MigrationFunc } from './migrations';
+
 // Utils
 export { createNamespace } from './utils/createNamespace';
 export { clearAll } from './utils/clearAll';

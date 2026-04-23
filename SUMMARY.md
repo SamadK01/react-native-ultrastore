@@ -7,18 +7,21 @@ A **production-ready**, **advanced-level** React Native CLI library with the fol
 ### 📦 Core Library Features
 
 #### **1. Main Hooks**
+
 - ✅ `useUltraStore` - Main hook for state + persistence
 - ✅ `useUltraStoreSelector` - Optimized partial state subscription
 - ✅ `useUltraStoreValue` - Read-only hook
 - ✅ `useUltraStoreSetter` - Write-only hook
 
 #### **2. Storage Engine**
+
 - ✅ MMKV-powered storage (10-30x faster than AsyncStorage)
 - ✅ Encryption support for sensitive data
 - ✅ Middleware system (logger, validator, custom)
 - ✅ Full TypeScript support
 
 #### **3. Advanced Features**
+
 - ✅ Namespaces for isolated stores
 - ✅ Selectors for performance optimization
 - ✅ Utility functions (clearAll, removeKey, getAllKeys)
@@ -26,6 +29,7 @@ A **production-ready**, **advanced-level** React Native CLI library with the fol
 - ✅ Middleware plugins
 
 #### **4. Developer Experience**
+
 - ✅ Zero-config setup
 - ✅ Auto persistence and reload
 - ✅ Full type safety and autocomplete
@@ -77,18 +81,21 @@ react-native-ultrastore/
 ### 🎯 Key Capabilities
 
 #### **Performance**
+
 - 10-30x faster than AsyncStorage
 - Optimized re-renders with selectors
 - Efficient subscription pattern
 - Native C++ backend (MMKV)
 
 #### **Developer-Friendly**
+
 - One-line state + persistence
 - Zero boilerplate
 - Full TypeScript support
 - Intuitive API
 
 #### **Production-Ready**
+
 - Unit tests included
 - Comprehensive documentation
 - Example app with all features
@@ -96,6 +103,7 @@ react-native-ultrastore/
 - Troubleshooting guides
 
 #### **Advanced**
+
 - Encryption for sensitive data
 - Namespaces for separation
 - Middleware system
@@ -118,6 +126,7 @@ react-native-ultrastore/
 ### 🎨 Example App Features
 
 The example app demonstrates:
+
 - ✅ User management with namespaces
 - ✅ Shopping cart with state management
 - ✅ Counter with selectors
@@ -184,40 +193,43 @@ yarn release
 
 ## 📊 Comparison with Requirements
 
-| Requirement | Status | Implementation |
-|------------|--------|----------------|
-| React Native CLI support | ✅ | Fully compatible |
-| Expo support | ✅ | With dev builds |
-| MMKV backend | ✅ | react-native-mmkv ^2.12.2 |
-| Hook-based API | ✅ | 4 different hooks |
-| Auto-persistence | ✅ | Built-in |
-| TypeScript | ✅ | 100% TypeScript |
-| Zero-config | ✅ | Just install & use |
-| Performance | ✅ | 10-30x faster |
-| Encryption | ✅ | Built-in support |
-| Namespaces | ✅ | createNamespace() |
-| Selectors | ✅ | useUltraStoreSelector |
-| Middleware | ✅ | Logger, validator, custom |
-| Tests | ✅ | Unit tests included |
-| Documentation | ✅ | 10 comprehensive docs |
-| Example app | ✅ | Full demo app |
-| Fabric compatible | ✅ | Future-proof |
+| Requirement              | Status | Implementation            |
+| ------------------------ | ------ | ------------------------- |
+| React Native CLI support | ✅     | Fully compatible          |
+| Expo support             | ✅     | With dev builds           |
+| MMKV backend             | ✅     | react-native-mmkv ^2.12.2 |
+| Hook-based API           | ✅     | 4 different hooks         |
+| Auto-persistence         | ✅     | Built-in                  |
+| TypeScript               | ✅     | 100% TypeScript           |
+| Zero-config              | ✅     | Just install & use        |
+| Performance              | ✅     | 10-30x faster             |
+| Encryption               | ✅     | Built-in support          |
+| Namespaces               | ✅     | createNamespace()         |
+| Selectors                | ✅     | useUltraStoreSelector     |
+| Middleware               | ✅     | Logger, validator, custom |
+| Tests                    | ✅     | Unit tests included       |
+| Documentation            | ✅     | 10 comprehensive docs     |
+| Example app              | ✅     | Full demo app             |
+| Fabric compatible        | ✅     | Future-proof              |
 
 ---
 
 ## 🎓 Learning Resources
 
 ### For Beginners
+
 1. Start with [QUICK_START.md](./QUICK_START.md)
 2. Read [GETTING_STARTED.md](./GETTING_STARTED.md)
 3. Run the example app
 
 ### For Advanced Users
+
 1. Read [API.md](./API.md)
 2. Check [EXAMPLE_USAGE.md](./EXAMPLE_USAGE.md)
 3. Explore [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)
 
 ### For Migrating
+
 1. Read [MIGRATION.md](./MIGRATION.md)
 2. Follow [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 
@@ -226,6 +238,7 @@ yarn release
 ## 🔮 Future Enhancements (v2 Roadmap)
 
 The library is designed to be extensible. Future versions can add:
+
 - DevTools integration
 - Offline sync with server
 - React Native Web support

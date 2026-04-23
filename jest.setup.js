@@ -1,3 +1,20 @@
+/* eslint-env jest */
+
+// Define global variables
+global.__DEV__ = true;
+
+// Mock react-native
+jest.mock('react-native', () => {
+  return {
+    Platform: {
+      OS: 'ios',
+      select: (obj) => obj.ios || obj.default || obj,
+    },
+    UIManager: {},
+    NativeModules: {},
+  };
+});
+
 // Mock react-native-mmkv
 jest.mock('react-native-mmkv', () => {
   const storage = new Map();

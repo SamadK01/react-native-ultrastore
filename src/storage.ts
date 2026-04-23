@@ -3,9 +3,10 @@
  * Powered by react-native-mmkv v4 + Nitro Modules
  */
 
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV, type MMKV } from 'react-native-mmkv';
 import { Platform } from 'react-native';
-import type { UltraStoreOptions, Middleware } from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { UltraStoreOptions, Middleware, Listener } from './types';
 
 // In-memory fallback for Expo Go
 const memoryStorage = new Map<string, string>();
@@ -13,7 +14,9 @@ const memoryStorage = new Map<string, string>();
 class StorageEngine {
   private storage: any;
   private isFallback: boolean = false;
+  private isHydrated: boolean = false;
   private middlewares: Middleware[] = [];
+  private listeners = new Map<string, Set<Listener<any>>>();
   private debug: boolean = false;
 
   constructor(options?: UltraStoreOptions) {
@@ -23,7 +26,7 @@ class StorageEngine {
       this.log('StorageEngine initialized', {
         id: options?.id,
         fallback: this.isFallback,
-        platform: Platform.OS
+        platform: Platform.OS,
       });
     }
   }
@@ -47,7 +50,7 @@ class StorageEngine {
     try {
       // MMKV v4 recommended way is createMMKV, but class also works.
       // We check if native MMKV is available.
-      this.storage = new MMKV({
+      this.storage = createMMKV({
         id: options?.id || 'ultrastore-default',
         encryptionKey: options?.encryptionKey,
       });
@@ -58,18 +61,49 @@ class StorageEngine {
       this.isFallback = true;
       if (__DEV__) {
         console.warn(
-          '[UltraStore] MMKV native module not found. Falling back to in-memory store. ' +
-          'Persistence will not work in Expo Go. Use a development build for full features.'
+          '[UltraStore] MMKV native module not found. Falling back to AsyncStorage + Memory. ' +
+            'Ensure you call await storage.hydrate() before using the store synchronously.'
         );
       }
       this.storage = {
         getString: (key: string) => memoryStorage.get(key),
-        set: (key: string, value: string) => memoryStorage.set(key, value),
-        remove: (key: string) => memoryStorage.delete(key),
+        set: (key: string, value: string) => {
+          memoryStorage.set(key, value);
+          AsyncStorage.setItem(key, value).catch(console.error);
+        },
+        remove: (key: string) => {
+          memoryStorage.delete(key);
+          AsyncStorage.removeItem(key).catch(console.error);
+        },
         contains: (key: string) => memoryStorage.has(key),
-        clearAll: () => memoryStorage.clear(),
+        clearAll: () => {
+          memoryStorage.clear();
+          AsyncStorage.clear().catch(console.error);
+        },
         getAllKeys: () => Array.from(memoryStorage.keys()),
       };
+    }
+  }
+
+  /**
+   * Hydrate memory store from AsyncStorage (Used only when MMKV fails)
+   */
+  async hydrate(): Promise<void> {
+    if (!this.isFallback || this.isHydrated) return;
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      if (keys.length > 0) {
+        const keyValues = await AsyncStorage.multiGet(keys);
+        keyValues.forEach(([key, value]) => {
+          if (value !== null) {
+            memoryStorage.set(key, value);
+          }
+        });
+      }
+      this.isHydrated = true;
+      this.log('Hydration complete');
+    } catch (error) {
+      console.error('[UltraStore] Failed to hydrate fallback store:', error);
     }
   }
 
@@ -128,6 +162,9 @@ class StorageEngine {
       this.storage.set(key, JSON.stringify(finalValue));
       this.log('SET', key, finalValue);
 
+      // Notify Global Listeners
+      this.emitChange(key, finalValue);
+
       // Run after middleware
       this.middlewares.forEach((m) => m.onAfterSet?.(key, finalValue));
     } catch (error) {
@@ -148,6 +185,7 @@ class StorageEngine {
       }
 
       this.log('DELETE', key);
+      this.emitChange(key, undefined);
       this.middlewares.forEach((m) => m.onDelete?.(key));
     } catch (error) {
       console.error(`[UltraStore] Error deleting key "${key}":`, error);
@@ -190,6 +228,40 @@ class StorageEngine {
    */
   getRawStorage(): MMKV {
     return this.storage;
+  }
+
+  /**
+   * Subscribe to global changes
+   */
+  onChange<T>(key: string, listener: Listener<T | undefined>): () => void {
+    if (!this.listeners.has(key)) {
+      this.listeners.set(key, new Set());
+    }
+    this.listeners.get(key)!.add(listener);
+    
+    // Return unsubscribe function
+    return () => {
+      const keyListeners = this.listeners.get(key);
+      if (keyListeners) {
+        keyListeners.delete(listener);
+        if (keyListeners.size === 0) {
+          this.listeners.delete(key);
+        }
+      }
+    };
+  }
+
+  private emitChange(key: string, value: any): void {
+    const keyListeners = this.listeners.get(key);
+    if (keyListeners) {
+      keyListeners.forEach((listener) => {
+        try {
+          listener(value);
+        } catch (error) {
+          console.error(`[UltraStore] Error in onChange listener for ${key}:`, error);
+        }
+      });
+    }
   }
 
   /**

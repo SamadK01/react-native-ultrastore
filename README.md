@@ -31,6 +31,7 @@ npm install react-native-ultrastore react-native-mmkv react-native-nitro-modules
 ```
 
 ### 1. Basic Hook
+
 ```tsx
 import { useUltraStore } from 'react-native-ultrastore';
 
@@ -38,6 +39,7 @@ const [user, setUser] = useUltraStore('user_profile', { name: 'Samad' });
 ```
 
 ### 2. Atomic State (New!)
+
 ```tsx
 import { createAtom, useUltraAtom } from 'react-native-ultrastore';
 
@@ -49,6 +51,7 @@ function Component() {
 ```
 
 ### 3. Zustand Integration (New!)
+
 ```ts
 import { createUltraZustandStorage } from 'react-native-ultrastore/zustand';
 
@@ -67,11 +70,11 @@ const useStore = create(
 
 ## 📊 Benchmarks (2026)
 
-| Operation | AsyncStorage | MMKV v2 | **UltraStore v2 (Nitro)** |
-| :--- | :--- | :--- | :--- |
-| **Write (1KB)** | ~5.2ms | ~0.15ms | **~0.04ms** |
-| **Read (1KB)** | ~3.8ms | ~0.08ms | **~0.02ms** |
-| **Bridge Overhead** | High (JSON) | Low (JSI) | **Zero (Nitro C++)** |
+| Operation           | AsyncStorage | MMKV v2   | **UltraStore v2 (Nitro)** |
+| :------------------ | :----------- | :-------- | :------------------------ |
+| **Write (1KB)**     | ~5.2ms       | ~0.15ms   | **~0.04ms**               |
+| **Read (1KB)**      | ~3.8ms       | ~0.08ms   | **~0.02ms**               |
+| **Bridge Overhead** | High (JSON)  | Low (JSI) | **Zero (Nitro C++)**      |
 
 ---
 
@@ -80,13 +83,17 @@ const useStore = create(
 Enable the built-in DevTools to see your state changes in real-time.
 
 ```ts
-import { defaultStorage, createDevToolsMiddleware } from 'react-native-ultrastore';
+import {
+  defaultStorage,
+  createDevToolsMiddleware,
+} from 'react-native-ultrastore';
 
 if (__DEV__) {
   defaultStorage.use(createDevToolsMiddleware());
 }
 ```
-*In Dev mode, access your state via `global.__ULTRASTORE_STATE__` in the Metro console.*
+
+_In Dev mode, access your state via `global.__ULTRASTORE_STATE__` in the Metro console._
 
 ---
 
@@ -96,9 +103,9 @@ if (__DEV__) {
 import { batchSet } from 'react-native-ultrastore';
 
 batchSet({
-  'is_logged_in': true,
-  'last_login': Date.now(),
-  'session_count': 5
+  is_logged_in: true,
+  last_login: Date.now(),
+  session_count: 5,
 }); // Only one set of notifications triggered!
 ```
 
@@ -106,13 +113,13 @@ batchSet({
 
 ## 🗺️ Comparison
 
-| Feature | UltraStore | AsyncStorage | Zustand | Jotai |
-| :--- | :--- | :--- | :--- | :--- |
-| **Persistence** | ✅ (Built-in) | ✅ | ⚠️ (Manual) | ⚠️ (Manual) |
-| **Speed** | 🚀 (Nitro) | 🐢 (Bridge) | ✅ | ✅ |
-| **Atoms** | ✅ | ❌ | ❌ | ✅ |
-| **Encryption** | ✅ | ❌ | ❌ | ❌ |
-| **Web/Expo Go** | ✅ | ✅ | ✅ | ✅ |
+| Feature         | UltraStore    | AsyncStorage | Zustand     | Jotai       |
+| :-------------- | :------------ | :----------- | :---------- | :---------- |
+| **Persistence** | ✅ (Built-in) | ✅           | ⚠️ (Manual) | ⚠️ (Manual) |
+| **Speed**       | 🚀 (Nitro)    | 🐢 (Bridge)  | ✅          | ✅          |
+| **Atoms**       | ✅            | ❌           | ❌          | ✅          |
+| **Encryption**  | ✅            | ❌           | ❌          | ❌          |
+| **Web/Expo Go** | ✅            | ✅           | ✅          | ✅          |
 
 ---
 
@@ -128,4 +135,4 @@ UltraStore v2.0.0 is a major upgrade with some breaking changes due to MMKV v4.
 
 ## License
 
-MIT © [Samad Khan](https://github.com/SamadK01)
+MIT © [Samad Khalid](https://github.com/SamadK01)

@@ -51,19 +51,19 @@ function App(): React.JSX.Element {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>🚀 UltraStore Demo</Text>
-        
+
         <UserSection />
         <Divider />
-        
+
         <CartSection />
         <Divider />
-        
+
         <CounterSection />
         <Divider />
-        
+
         <ThemeSection />
         <Divider />
-        
+
         <UtilitySection />
       </ScrollView>
     </SafeAreaView>
@@ -72,11 +72,15 @@ function App(): React.JSX.Element {
 
 // User Management Section
 function UserSection() {
-  const [user, setUser] = useUltraStore<User>('user', {
-    name: '',
-    email: '',
-    token: '',
-  }, userStorage);
+  const [user, setUser] = useUltraStore<User>(
+    'user',
+    {
+      name: '',
+      email: '',
+      token: '',
+    },
+    userStorage
+  );
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -106,16 +110,8 @@ function UserSection() {
         </View>
       ) : (
         <View>
-          <Input
-            placeholder="Name"
-            value={name}
-            onChangeText={setName}
-          />
-          <Input
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-          />
+          <Input placeholder="Name" value={name} onChangeText={setName} />
+          <Input placeholder="Email" value={email} onChangeText={setEmail} />
           <Button title="Login" onPress={handleLogin} />
         </View>
       )}
@@ -138,7 +134,7 @@ function CartSection() {
   };
 
   const removeItem = (id: string) => {
-    setCart(cart.filter(item => item.id !== id));
+    setCart(cart.filter((item) => item.id !== id));
   };
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -147,8 +143,8 @@ function CartSection() {
     <Section title="🛒 Shopping Cart (Namespace)">
       <InfoText>Items: {cart.length}</InfoText>
       <InfoText>Total: ${total.toFixed(2)}</InfoText>
-      
-      {cart.map(item => (
+
+      {cart.map((item) => (
         <View key={item.id} style={styles.cartItem}>
           <Text style={styles.cartItemText}>
             {item.name} - ${item.price} x {item.quantity}
@@ -158,13 +154,13 @@ function CartSection() {
           </TouchableOpacity>
         </View>
       ))}
-      
+
       <Button title="Add Item" onPress={addItem} />
       {cart.length > 0 && (
-        <Button 
-          title="Clear Cart" 
-          onPress={() => setCart([])} 
-          color="#f44336" 
+        <Button
+          title="Clear Cart"
+          onPress={() => setCart([])}
+          color="#f44336"
         />
       )}
     </Section>
@@ -186,11 +182,11 @@ function CounterSection() {
     <Section title="🔢 Counter (with Selector)">
       <InfoText>Count: {counter}</InfoText>
       <InfoText>Is Even: {isEven ? 'Yes ✅' : 'No ❌'}</InfoText>
-      
+
       <View style={styles.buttonRow}>
-        <Button title="-" onPress={() => setCounter(c => c - 1)} />
+        <Button title="-" onPress={() => setCounter((c) => c - 1)} />
         <Button title="Reset" onPress={() => setCounter(0)} color="#ff9800" />
-        <Button title="+" onPress={() => setCounter(c => c + 1)} />
+        <Button title="+" onPress={() => setCounter((c) => c + 1)} />
       </View>
     </Section>
   );
@@ -198,25 +194,28 @@ function CounterSection() {
 
 // Theme Section
 function ThemeSection() {
-  const [theme, setTheme] = useUltraStore<'light' | 'dark' | 'auto'>('theme', 'light');
+  const [theme, setTheme] = useUltraStore<'light' | 'dark' | 'auto'>(
+    'theme',
+    'light'
+  );
 
   return (
     <Section title="🎨 Theme Preference">
       <InfoText>Current: {theme}</InfoText>
-      
+
       <View style={styles.buttonRow}>
-        <Button 
-          title="Light" 
+        <Button
+          title="Light"
           onPress={() => setTheme('light')}
           color={theme === 'light' ? '#4CAF50' : '#757575'}
         />
-        <Button 
-          title="Dark" 
+        <Button
+          title="Dark"
           onPress={() => setTheme('dark')}
           color={theme === 'dark' ? '#4CAF50' : '#757575'}
         />
-        <Button 
-          title="Auto" 
+        <Button
+          title="Auto"
           onPress={() => setTheme('auto')}
           color={theme === 'auto' ? '#4CAF50' : '#757575'}
         />
@@ -238,13 +237,13 @@ function UtilitySection() {
       'Are you sure? This will delete everything.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Clear', 
+        {
+          text: 'Clear',
           style: 'destructive',
           onPress: () => {
             clearAll();
             Alert.alert('Success', 'All data cleared!');
-          }
+          },
         },
       ]
     );
@@ -259,7 +258,13 @@ function UtilitySection() {
 }
 
 // Helper Components
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>

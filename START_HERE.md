@@ -5,30 +5,36 @@
 ## 🚀 Quick Navigation
 
 ### 👋 New to UltraStore?
+
 1. **[QUICK_START.md](./QUICK_START.md)** - Get started in 5 minutes
 2. **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Comprehensive beginner guide
 3. **[CHEAT_SHEET.md](./CHEAT_SHEET.md)** - Quick reference
 
 ### 📚 Documentation
+
 - **[README.md](./README.md)** - Main documentation (start here!)
 - **[API.md](./API.md)** - Complete API reference
 - **[EXAMPLE_USAGE.md](./EXAMPLE_USAGE.md)** - Real-world examples
 - **[BENCHMARKS.md](./BENCHMARKS.md)** - Performance data
 
 ### 🔧 Setup & Installation
+
 - **[INSTALLATION_STEPS.md](./INSTALLATION_STEPS.md)** - Step-by-step installation
 - **[SETUP_GUIDE.md](./SETUP_GUIDE.md)** - Detailed setup for all platforms
 - **[MIGRATION.md](./MIGRATION.md)** - Migrate from AsyncStorage/Redux
 
 ### 🎨 Example App
+
 - **[example/](./example/)** - Full React Native CLI demo app
 - **[example/README.md](./example/README.md)** - How to run the example
 
 ### 🤝 Contributing
+
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution guidelines
 - **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** - Architecture details
 
 ### 📦 Deliverables
+
 - **[FINAL_DELIVERABLES.md](./FINAL_DELIVERABLES.md)** - Complete project summary
 - **[SUMMARY.md](./SUMMARY.md)** - Package overview
 
@@ -45,16 +51,14 @@ function App() {
   return (
     <View>
       <Text>Welcome, {user.name}!</Text>
-      <Button 
-        title="Login" 
-        onPress={() => setUser({ name: 'Samad' })} 
-      />
+      <Button title="Login" onPress={() => setUser({ name: 'Samad' })} />
     </View>
   );
 }
 ```
 
 **That's it!** Your data is now:
+
 - ✅ Persisted to disk
 - ✅ Auto-loaded on restart
 - ✅ 10-30x faster than AsyncStorage
@@ -64,6 +68,7 @@ function App() {
 ## 🎯 What You Get
 
 ### Core Features
+
 - ⚡ **10-30x faster** than AsyncStorage
 - 🎯 **Zero boilerplate** - one-line API
 - 🔄 **Auto persistence** - no manual saving
@@ -74,6 +79,7 @@ function App() {
 - 🔌 **Middleware** - extensible plugins
 
 ### Documentation
+
 - 📖 **13 comprehensive guides**
 - 🎨 **Full example app**
 - ⚡ **Performance benchmarks**
@@ -81,6 +87,7 @@ function App() {
 - 📦 **Migration guides**
 
 ### Quality
+
 - ✅ **Unit tests** included
 - ✅ **TypeScript strict mode**
 - ✅ **ESLint + Prettier**
@@ -91,39 +98,42 @@ function App() {
 
 ## 📊 Performance
 
-| Operation | UltraStore | AsyncStorage | Improvement |
-|-----------|-----------|--------------|-------------|
-| 1000 writes | 15-18ms | 450-540ms | **30x faster** |
-| 1000 reads | 8-10ms | 200-250ms | **25x faster** |
-| Cold start | <1ms | 45-60ms | **Instant** |
+| Operation   | UltraStore | AsyncStorage | Improvement    |
+| ----------- | ---------- | ------------ | -------------- |
+| 1000 writes | 15-18ms    | 450-540ms    | **30x faster** |
+| 1000 reads  | 8-10ms     | 200-250ms    | **25x faster** |
+| Cold start  | <1ms       | 45-60ms      | **Instant**    |
 
 ---
 
 ## 🆚 vs Competitors
 
-| Feature | UltraStore | AsyncStorage | Zustand+MMKV |
-|---------|-----------|--------------|--------------|
-| Speed | ⚡⚡⚡ | 🐌 | ⚡⚡⚡ |
-| Setup | Zero config | Simple | Medium |
-| State Mgmt | ✅ Built-in | ❌ Manual | ✅ Built-in |
-| Auto Persist | ✅ Yes | ❌ No | ⚠️ Plugin |
-| Boilerplate | None | High | Medium |
+| Feature      | UltraStore  | AsyncStorage | Zustand+MMKV |
+| ------------ | ----------- | ------------ | ------------ |
+| Speed        | ⚡⚡⚡      | 🐌           | ⚡⚡⚡       |
+| Setup        | Zero config | Simple       | Medium       |
+| State Mgmt   | ✅ Built-in | ❌ Manual    | ✅ Built-in  |
+| Auto Persist | ✅ Yes      | ❌ No        | ⚠️ Plugin    |
+| Boilerplate  | None        | High         | Medium       |
 
 ---
 
 ## 🎓 Learning Path
 
 ### Beginner (5-10 minutes)
+
 1. Read [QUICK_START.md](./QUICK_START.md)
 2. Try the basic example
 3. Run the example app
 
 ### Intermediate (20-30 minutes)
+
 1. Read [GETTING_STARTED.md](./GETTING_STARTED.md)
 2. Learn about selectors and namespaces
 3. Explore [EXAMPLE_USAGE.md](./EXAMPLE_USAGE.md)
 
 ### Advanced (1 hour)
+
 1. Study [API.md](./API.md)
 2. Read [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)
 3. Check [BENCHMARKS.md](./BENCHMARKS.md)
@@ -151,21 +161,25 @@ See [INSTALLATION_STEPS.md](./INSTALLATION_STEPS.md) for details.
 ## 💡 Common Use Cases
 
 ### Authentication
+
 ```tsx
 const [user, setUser] = useUltraStore<User | null>('auth', null);
 ```
 
 ### Shopping Cart
+
 ```tsx
 const [items, setItems] = useUltraStore<Item[]>('cart', []);
 ```
 
 ### Theme
+
 ```tsx
 const [theme, setTheme] = useUltraStore<Theme>('theme', 'light');
 ```
 
 ### Settings
+
 ```tsx
 const [settings, setSettings] = useUltraStore<Settings>('settings', defaults);
 ```
@@ -224,17 +238,20 @@ All requirements from the specification have been implemented:
 ### To Use This Library
 
 1. **Install dependencies**
+
    ```bash
    cd "/Users/user2024/Documents/UltraStore Library"
    yarn install
    ```
 
 2. **Run tests**
+
    ```bash
    yarn test
    ```
 
 3. **Try the example**
+
    ```bash
    cd example
    yarn install

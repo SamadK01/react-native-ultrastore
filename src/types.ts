@@ -3,6 +3,7 @@
  */
 
 // Global type declarations
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare const __DEV__: boolean;
 
 export type Listener<T> = (value: T) => void;

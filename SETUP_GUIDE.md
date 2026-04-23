@@ -72,7 +72,7 @@ import { useUltraStore } from 'react-native-ultrastore';
 
 function App() {
   const [user, setUser] = useUltraStore('user', { name: '' });
-  
+
   return <Text>{user.name}</Text>;
 }
 ```
@@ -179,6 +179,7 @@ setTheme('blue'); // ❌ TypeScript error
 **Problem**: `'MMKV/MMKV.h' file not found`
 
 **Solution**:
+
 ```bash
 cd ios
 pod deintegrate
@@ -189,6 +190,7 @@ cd ..
 **Problem**: Build fails after installation
 
 **Solution**:
+
 ```bash
 # Clean build
 cd ios
@@ -205,6 +207,7 @@ rm -rf ~/Library/Developer/Xcode/DerivedData
 **Problem**: `Could not find react-native-mmkv`
 
 **Solution**:
+
 ```bash
 cd android
 ./gradlew clean
@@ -214,6 +217,7 @@ cd ..
 **Problem**: Metro bundler cache issues
 
 **Solution**:
+
 ```bash
 yarn start --reset-cache
 ```
@@ -223,6 +227,7 @@ yarn start --reset-cache
 **Problem**: "Invariant Violation: Native module cannot be null"
 
 **Solution**: You're using Expo Go. Create a development build:
+
 ```bash
 npx expo prebuild
 npx expo run:ios  # or run:android
@@ -231,6 +236,7 @@ npx expo run:ios  # or run:android
 **Problem**: Build fails with EAS
 
 **Solution**: Ensure `eas.json` is configured correctly and you have the latest EAS CLI:
+
 ```bash
 npm install -g eas-cli@latest
 eas build --profile development --platform all
@@ -240,7 +246,8 @@ eas build --profile development --platform all
 
 **Problem**: Data not persisting
 
-**Solution**: 
+**Solution**:
+
 1. Check if you're using the same key across app restarts
 2. Ensure the app has storage permissions (Android)
 3. Check if you're calling `clearAll()` somewhere
@@ -248,6 +255,7 @@ eas build --profile development --platform all
 **Problem**: TypeScript errors
 
 **Solution**:
+
 ```bash
 # Regenerate types
 yarn typecheck
@@ -259,6 +267,7 @@ rm -rf node_modules/.cache
 **Problem**: Performance issues
 
 **Solution**:
+
 1. Use selectors for large objects
 2. Avoid storing very large data (>1MB per key)
 3. Use namespaces to separate concerns
@@ -280,7 +289,7 @@ function TestApp() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Text>Count: {count}</Text>
-      <Button title="Increment" onPress={() => setCount(c => c + 1)} />
+      <Button title="Increment" onPress={() => setCount((c) => c + 1)} />
     </View>
   );
 }

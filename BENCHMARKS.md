@@ -12,10 +12,10 @@ UltraStore v2.0.0 is built on **MMKV v4** and **Nitro Modules**, offering near-z
 ## 🚀 Performance Comparison
 
 | Operation (1KB) | AsyncStorage | MMKV v2 | **UltraStore v2 (Nitro)** |
-| :--- | :--- | :--- | :--- |
-| **Write** | ~5.2ms | ~0.15ms | **~0.04ms** ✨ |
-| **Read** | ~3.8ms | ~0.08ms | **~0.02ms** ✨ |
-| **Delete** | ~4.5ms | ~0.12ms | **~0.03ms** ✨ |
+| :-------------- | :----------- | :------ | :------------------------ |
+| **Write**       | ~5.2ms       | ~0.15ms | **~0.04ms** ✨            |
+| **Read**        | ~3.8ms       | ~0.08ms | **~0.02ms** ✨            |
+| **Delete**      | ~4.5ms       | ~0.12ms | **~0.03ms** ✨            |
 
 > [!NOTE]
 > UltraStore v2 is **100x faster** than AsyncStorage and **3-4x faster** than previous MMKV bridge-based implementations.
@@ -24,17 +24,17 @@ UltraStore v2.0.0 is built on **MMKV v4** and **Nitro Modules**, offering near-z
 
 Batching reduces JavaScript re-renders and bridge calls, significantly improving UI responsiveness.
 
-| Test Case | Sequential Writes | **Batch Updates (v2)** |
-| :--- | :--- | :--- |
-| **10 Keys Update** | ~1.5ms | **~0.1ms** |
-| **UI Jitter** | Visible | **None** |
+| Test Case          | Sequential Writes | **Batch Updates (v2)** |
+| :----------------- | :---------------- | :--------------------- |
+| **10 Keys Update** | ~1.5ms            | **~0.1ms**             |
+| **UI Jitter**      | Visible           | **None**               |
 
 ## Memory Usage
 
-| Usage | AsyncStorage | **UltraStore v2** |
-| :--- | :--- | :--- |
-| **Heap Impact** | High (JSON parsing) | **Near Zero** |
-| **Background Threading** | Yes (Manual) | **Not needed (Sync C++)** |
+| Usage                    | AsyncStorage        | **UltraStore v2**         |
+| :----------------------- | :------------------ | :------------------------ |
+| **Heap Impact**          | High (JSON parsing) | **Near Zero**             |
+| **Background Threading** | Yes (Manual)        | **Not needed (Sync C++)** |
 
 ---
 
@@ -46,4 +46,4 @@ Batching reduces JavaScript re-renders and bridge calls, significantly improving
 
 ---
 
-*Benchmarks run in production builds on physical devices.*
+_Benchmarks run in production builds on physical devices._

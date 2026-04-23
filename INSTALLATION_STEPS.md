@@ -58,11 +58,11 @@ import { useUltraStore } from 'react-native-ultrastore';
 
 function MyComponent() {
   // Redux
-  const reduxState = useSelector(state => state.complex);
-  
+  const reduxState = useSelector((state) => state.complex);
+
   // UltraStore
   const [settings, setSettings] = useUltraStore('settings', {});
-  
+
   return <View>...</View>;
 }
 ```
@@ -101,7 +101,7 @@ export default function TestScreen() {
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Text style={{ fontSize: 48 }}>{count}</Text>
-      <Button title="Increment" onPress={() => setCount(c => c + 1)} />
+      <Button title="Increment" onPress={() => setCount((c) => c + 1)} />
       <Text style={{ marginTop: 20, color: 'gray' }}>
         Close and reopen the app - your count persists!
       </Text>
@@ -111,6 +111,7 @@ export default function TestScreen() {
 ```
 
 **Test checklist:**
+
 - [ ] Counter increments when you press the button
 - [ ] Close the app completely
 - [ ] Reopen the app
@@ -161,6 +162,7 @@ npx expo run:ios
 ✅ **Installation complete!**
 
 Now explore:
+
 - 📖 [Getting Started Guide](./GETTING_STARTED.md)
 - 🎨 [Usage Examples](./EXAMPLE_USAGE.md)
 - 📚 [API Reference](./API.md)

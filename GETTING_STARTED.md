@@ -34,6 +34,7 @@ cd ..
 ## 🏗️ Core Concepts (v2 Features)
 
 ### 1. Basic Persistence
+
 ```tsx
 import { useUltraStore } from 'react-native-ultrastore';
 
@@ -41,7 +42,9 @@ const [count, setCount] = useUltraStore('count', 0);
 ```
 
 ### 2. Atomic State (Atoms)
+
 Atoms are composable units of state that automatically persist to disk.
+
 ```tsx
 import { createAtom, useUltraAtom } from 'react-native-ultrastore';
 
@@ -53,7 +56,9 @@ function Profile() {
 ```
 
 ### 3. Batching for Performance
+
 Update multiple keys without bridge overhead.
+
 ```tsx
 import { batchSet } from 'react-native-ultrastore';
 
@@ -61,9 +66,14 @@ batchSet({ key1: 'val1', key2: 'val2' });
 ```
 
 ### 4. DevTools
+
 Inspect your state live in the console.
+
 ```tsx
-import { defaultStorage, createDevToolsMiddleware } from 'react-native-ultrastore';
+import {
+  defaultStorage,
+  createDevToolsMiddleware,
+} from 'react-native-ultrastore';
 
 if (__DEV__) {
   defaultStorage.use(createDevToolsMiddleware());
@@ -71,7 +81,9 @@ if (__DEV__) {
 ```
 
 ## Environment Fallbacks
+
 UltraStore is designed to work everywhere:
+
 - **Expo Go:** Gracefully falls back to an in-memory store (no persistence).
 - **Web:** Automatically uses `localStorage`.
 

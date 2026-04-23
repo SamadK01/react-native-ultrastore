@@ -5,20 +5,25 @@
 UltraStore v2.0.0 is a major upgrade. Please follow these steps to migrate.
 
 ### 1. Update Dependencies
+
 ```bash
 npm install react-native-mmkv@>=4.0.0 react-native-nitro-modules@>=0.35.0
 ```
+
 UltraStore v2 requires **React Native 0.75+** because MMKV v4 is a Nitro Module.
 
 ### 2. Native Code Changes
+
 If you were using `StorageEngine.delete(key)`, no code changes are needed! It now calls MMKV's new `.remove(key)` internally, maintaining backward compatibility.
 
 ### 3. New Architecture
+
 If you are moving to the New Architecture (Fabric), UltraStore v2 is **bridge-free** and requires zero manual configuration.
 
 ---
 
 ## From AsyncStorage
+
 ... (rest of the content)
 
 ### Before (AsyncStorage)
@@ -32,7 +37,7 @@ function App() {
 
   useEffect(() => {
     // Load on mount
-    AsyncStorage.getItem('user').then(data => {
+    AsyncStorage.getItem('user').then((data) => {
       if (data) setUser(JSON.parse(data));
     });
   }, []);
@@ -61,6 +66,7 @@ function App() {
 ```
 
 **Benefits:**
+
 - ⚡ 10-30x faster
 - 🎯 No boilerplate
 - 🔄 Auto persistence
@@ -114,7 +120,7 @@ function App() {
 import { useSelector, useDispatch } from 'react-redux';
 
 function Component() {
-  const user = useSelector(state => state.user);
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
   const updateUser = (newUser) => {
@@ -144,6 +150,7 @@ function Component() {
 ```
 
 **Benefits:**
+
 - 📦 90% less code
 - ⚡ Much faster
 - 🎯 No boilerplate
@@ -195,6 +202,7 @@ function Component() {
 ```
 
 **Benefits:**
+
 - ⚡ 10-30x faster (MMKV vs AsyncStorage)
 - 🎯 Simpler API
 - 🔄 Built-in persistence
@@ -215,7 +223,7 @@ function UserProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('user').then(data => {
+    AsyncStorage.getItem('user').then((data) => {
       if (data) setUser(JSON.parse(data));
     });
   }, []);
@@ -260,6 +268,7 @@ function Component() {
 ```
 
 **Benefits:**
+
 - 🎯 No provider setup
 - ⚡ Much faster
 - 🔄 Auto persistence
@@ -326,7 +335,7 @@ async function migrateData() {
   try {
     // Get all AsyncStorage keys
     const keys = await AsyncStorage.getAllKeys();
-    
+
     // Migrate each key
     for (const key of keys) {
       const value = await AsyncStorage.getItem(key);
@@ -334,10 +343,10 @@ async function migrateData() {
         defaultStorage.set(key, JSON.parse(value));
       }
     }
-    
+
     // Optional: Clear AsyncStorage after migration
     // await AsyncStorage.clear();
-    
+
     console.log('Migration complete!');
   } catch (error) {
     console.error('Migration failed:', error);

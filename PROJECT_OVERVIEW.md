@@ -7,6 +7,7 @@
 ## ✨ Key Features
 
 ### Core Features (v1.0.0)
+
 - ⚡ **Blazing Fast**: 10-30x faster than AsyncStorage (powered by MMKV)
 - 🎯 **Simple API**: One-line hook for state + persistence
 - 🔄 **Auto Persistence**: Data automatically persists and reloads
@@ -17,6 +18,7 @@
 - 🏗️ **Fabric Ready**: Compatible with New Architecture
 
 ### Advanced Features
+
 - 🔒 **Encryption Support**: Built-in secure storage for sensitive data
 - 🎭 **Namespaces**: Separate stores for different domains
 - 🔍 **Selectors**: Optimized re-renders with partial state subscription
@@ -79,24 +81,28 @@ react-native-ultrastore/
 ## 🏗️ Architecture
 
 ### 1. Storage Layer (`storage.ts`)
+
 - Wraps `react-native-mmkv` for high-performance storage
 - Provides middleware support
 - Handles JSON serialization/deserialization
 - Supports encryption
 
 ### 2. State Layer (`store.ts`)
+
 - Manages reactive state with subscription pattern
 - Maintains singleton stores per key
 - Syncs state with storage automatically
 - Notifies listeners on changes
 
 ### 3. Hook Layer (`hooks/`)
+
 - `useUltraStore`: Main hook (state + persistence)
 - `useUltraStoreSelector`: Optimized partial state subscription
 - `useUltraStoreValue`: Read-only access
 - `useUltraStoreSetter`: Write-only updates
 
 ### 4. Middleware System
+
 - Logger: Debug logging for development
 - Validator: Data validation before storage
 - Custom: Extensible middleware API
@@ -104,17 +110,20 @@ react-native-ultrastore/
 ## 🔧 Technical Details
 
 ### Dependencies
+
 - **react-native-mmkv**: ^2.12.2 (core storage engine)
 - **react**: ^18.2.0 (peer dependency)
 - **react-native**: ^0.74.0+ (peer dependency)
 
 ### Build System
+
 - **TypeScript**: Full type safety
 - **react-native-builder-bob**: Library builder
 - **Jest**: Unit testing
 - **ESLint + Prettier**: Code quality
 
 ### Compatibility
+
 - React Native: 0.74.0+
 - React: 18.0.0+
 - iOS: 12.0+
@@ -125,12 +134,14 @@ react-native-ultrastore/
 ## 📊 Performance
 
 ### Benchmarks (vs AsyncStorage)
+
 - **Read**: 10-30x faster
 - **Write**: 10-30x faster
 - **Bundle Size**: ~50KB (minified)
 - **Memory**: Minimal overhead
 
 ### Optimization Features
+
 - Selectors for partial state updates
 - Read-only/write-only hooks to prevent unnecessary re-renders
 - Efficient subscription pattern
@@ -139,22 +150,26 @@ react-native-ultrastore/
 ## 🎓 Usage Examples
 
 ### Basic Usage
+
 ```tsx
 const [user, setUser] = useUltraStore('user', { name: '', email: '' });
 ```
 
 ### With Selectors
+
 ```tsx
 const userName = useUltraStoreSelector('user', (u) => u.name, { name: '' });
 ```
 
 ### With Namespaces
+
 ```tsx
 const userStorage = createNamespace('user');
 const [profile, setProfile] = useUltraStore('data', {}, userStorage);
 ```
 
 ### With Encryption
+
 ```tsx
 const secureStorage = createStorage({ encryptionKey: 'secret' });
 const [token, setToken] = useUltraStore('token', '', secureStorage);
@@ -186,6 +201,7 @@ yarn release
 ## 🗺️ Roadmap
 
 ### v1.0.0 (Current) ✅
+
 - Core state + persistence
 - TypeScript support
 - Namespaces
@@ -196,12 +212,14 @@ yarn release
 - Tests
 
 ### v1.1.0 (Planned)
+
 - [ ] DevTools integration
 - [ ] Performance monitoring
 - [ ] Advanced selectors (deep comparison)
 - [ ] Batch updates
 
 ### v2.0.0 (Future)
+
 - [ ] Offline sync with server
 - [ ] React Native Web support
 - [ ] Multi-tab sync

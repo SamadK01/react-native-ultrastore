@@ -16,6 +16,7 @@ cd ios && pod install
 > **React Native 0.75+ required** for MMKV v4 + Nitro Modules support.
 
 ## 1. Basic Hook
+
 ```tsx
 import { useUltraStore } from 'react-native-ultrastore';
 
@@ -23,6 +24,7 @@ const [count, setCount] = useUltraStore('count', 0);
 ```
 
 ## 2. Atomic State (New!)
+
 ```tsx
 import { createAtom, useUltraAtom } from 'react-native-ultrastore';
 
@@ -34,26 +36,29 @@ function Component() {
 ```
 
 ## 3. Batch Updates (New!)
+
 ```tsx
 import { batchSet } from 'react-native-ultrastore';
 
 batchSet({
-  'is_logged_in': true,
-  'last_login': Date.now()
+  is_logged_in: true,
+  last_login: Date.now(),
 }); // Unified update, zero bridge overhead.
 ```
 
 ## 4. Zustand Integration (New!)
+
 ```ts
 import { createUltraZustandStorage } from 'react-native-ultrastore/zustand';
 
 // Use as your persist storage
-storage: createJSONStorage(() => createUltraZustandStorage())
+storage: createJSONStorage(() => createUltraZustandStorage());
 ```
 
 ---
 
 ## Why v2?
+
 - 🚀 **Nitro Powered:** Uses direct C++ bindings for zero-bridge speed.
 - ⚛️ **Atoms:** Composable, atomic state units.
 - 🧪 **Expo Go:** Built-in safe fallbacks.

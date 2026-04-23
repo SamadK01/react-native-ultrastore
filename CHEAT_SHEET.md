@@ -10,12 +10,14 @@ cd ios && pod install
 ```
 
 ## ⚛️ Atoms (Atomic State)
+
 ```tsx
 const themeAtom = createAtom('theme', 'dark');
 const [theme, setTheme] = useUltraAtom(themeAtom);
 ```
 
 ## 🏗️ Storage Hooks
+
 ```tsx
 // Core hook
 const [val, setVal] = useUltraStore('key', 'init');
@@ -29,28 +31,32 @@ update({ key1: 'val1', key2: 'val2' });
 ```
 
 ## 🔄 Third-Party Adapters
+
 ```ts
 // Zustand
-storage: createJSONStorage(() => createUltraZustandStorage())
+storage: createJSONStorage(() => createUltraZustandStorage());
 ```
 
 ## 🛠️ Middleware & DevTools
+
 ```ts
 // DevTools (Inspection)
 defaultStorage.use(createDevToolsMiddleware());
 
 // Check state in console:
-global.__ULTRASTORE_STATE__
+global.__ULTRASTORE_STATE__;
 ```
 
 ## 🌏 Environments
+
 - **Nitro JSI:** Native speed on New Arch.
 - **Expo Go:** Safe in-memory fallback.
 - **Web:** `localStorage` fallback.
 
 ## 🧹 Utilities
+
 ```ts
-clearAll();        // Reset storage
-removeKey('key');  // Delete key
-getAllKeys();      // List all
+clearAll(); // Reset storage
+removeKey('key'); // Delete key
+getAllKeys(); // List all
 ```

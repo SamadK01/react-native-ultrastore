@@ -37,7 +37,9 @@ export function createValidatorMiddleware<T = any>(rules: {
         const result = rule(value);
         if (result !== true) {
           const errorMsg =
-            typeof result === 'string' ? result : `Validation failed for ${key}`;
+            typeof result === 'string'
+              ? result
+              : `Validation failed for ${key}`;
           console.error(`[UltraStore] Validation Error: ${errorMsg}`);
           throw new Error(errorMsg);
         }
