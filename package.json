@@ -1,6 +1,6 @@
 {
   "name": "react-native-ultrastore",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Ultra fast storage + state manager for React Native with MMKV v4, Nitro Modules, Atoms, and Zustand support.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
