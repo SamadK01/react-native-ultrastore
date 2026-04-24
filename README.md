@@ -14,12 +14,12 @@ The fastest, most modern storage + state management library for React Native in 
 
 - ⚡ **Blazing Fast:** 10–30x faster than AsyncStorage, powered by MMKV v4 + Nitro JSI.
 - 🏗️ **New Architecture First:** Full support for Fabric and TurboModules with zero bridge overhead.
+- 🛠 **Migrations Native Manager:** Build version-based structural upgrades (`createMigrationManager`).
+- 🔔 **Global Subscriptions:** Native Pub/Sub via `storage.onChange(key, callback)` without React Context rerenders.
 - ⚛️ **Atom API:** Jotai-style atomic state for composable, isolated state units.
 - 📦 **Zustand Adapter:** Use UltraStore as a persistence layer for Zustand in one line.
-- 🛠️ **DevTools:** Built-in middleware to inspect live state in Metro/Flipper.
+- 🧪 **Expo Go Fallback:** Seamless async fallback via `AsyncStorage` + Memory using `await storage.hydrate()`.
 - 🔄 **Batch Updates:** Write multiple keys in a single operation with zero redundant renders.
-- 🌐 **Web Support:** Seamless fallback to `localStorage` for Expo Web.
-- 🧪 **Expo Go Fallback:** Graceful in-memory fallback for Expo Go environments.
 - 🔐 **Military-Grade Encryption:** Secure your data with MMKV's native encryption.
 
 ---
@@ -66,6 +66,26 @@ const useStore = create(
 );
 ```
 
+### 4. Async Actions / Thunks (New!)
+
+```tsx
+const [user, setUser] = useUltraStore('user', null);
+
+// Perform async logic directly inside setter
+setUser(async (set, get) => {
+  const data = await fetchUser();
+  set(data);
+});
+```
+
+### 5. Undo / Redo History (New!)
+
+```tsx
+import { useUltraHistory } from 'react-native-ultrastore';
+
+const { value, setValue, undo, redo, canUndo } = useUltraHistory('text_input', '', { maxHistory: 30 });
+```
+
 ---
 
 ## 📊 Benchmarks (2026)
@@ -78,9 +98,20 @@ const useStore = create(
 
 ---
 
+## 🌍 Web & SSR Support
+
+UltraStore is fully SSR-safe and automatically uses `localStorage` on the web.
+
+```tsx
+// Works out of the box in Next.js / Expo Web
+const [state, setState] = useUltraStore('key', 'default');
+```
+
+---
+
 ## 🛠️ DevTools Middleware
 
-Enable the built-in DevTools to see your state changes in real-time.
+Enable the built-in DevTools to see your state changes in real-time. Now with **Redux DevTools Bridge** support.
 
 ```ts
 import {
@@ -93,7 +124,7 @@ if (__DEV__) {
 }
 ```
 
-_In Dev mode, access your state via `global.__ULTRASTORE_STATE__` in the Metro console._
+_In Dev mode, state changes are synced to Redux DevTools and accessible via `global.__ULTRASTORE_STATE__`._
 
 ---
 

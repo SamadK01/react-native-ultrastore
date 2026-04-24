@@ -42,6 +42,15 @@ export interface Middleware<T = any> {
   onDelete?: (key: string) => void;
 }
 
-export type SetStateAction<T> = T | ((prevState: T) => T);
+export type Thunk<T> = (
+  set: (value: T | ((prev: T) => T)) => void,
+  get: () => T
+) => void | Promise<void>;
+
+export type SetStateAction<T> =
+  | T
+  | Promise<T>
+  | ((prevState: T) => T | Promise<T>)
+  | Thunk<T>;
 
 export type Selector<T, R> = (state: T) => R;

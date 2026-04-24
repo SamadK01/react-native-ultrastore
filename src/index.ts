@@ -9,6 +9,8 @@ export { useUltraStore } from './hooks/useUltraStore';
 export { useUltraStoreSelector } from './hooks/useUltraStoreSelector';
 export { useUltraStoreValue } from './hooks/useUltraStoreValue';
 export { useUltraStoreSetter } from './hooks/useUltraStoreSetter';
+export { useDerived } from './hooks/useDerived';
+export { useUltraHistory } from './hooks/useUltraHistory';
 
 // Storage
 export { defaultStorage, createStorage, StorageEngine } from './storage';

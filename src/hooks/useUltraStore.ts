@@ -27,7 +27,7 @@ export function useUltraStore<T>(
   key: string,
   initialValue: T,
   storage?: StorageEngine
-): [T, (action: SetStateAction<T>) => void] {
+): [T, (action: SetStateAction<T>) => void | Promise<void>] {
   const store = getStore(key, initialValue, storage);
   const [value, setValue] = useState<T>(store.getValue());
   const isMountedRef = useRef(true);
@@ -51,7 +51,7 @@ export function useUltraStore<T>(
 
   const setStoreValue = useCallback(
     (action: SetStateAction<T>) => {
-      store.setValue(action);
+      return store.setValue(action);
     },
     [store]
   );

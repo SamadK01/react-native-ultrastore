@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { UltraStoreOptions, Middleware, Listener } from './types';
 
-// In-memory fallback for Expo Go
+// In-memory fallback for environments without synchronous persistent storage
 const memoryStorage = new Map<string, string>();
 
 class StorageEngine {
@@ -32,53 +32,79 @@ class StorageEngine {
   }
 
   private initializeStorage(options?: UltraStoreOptions) {
-    // 1. Web Fallback
+    // 1. Web / SSR Support
     if (Platform.OS === 'web') {
-      this.isFallback = true;
+      const isBrowser = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+      this.isFallback = !isBrowser; // If not browser, we use memory only (SSR)
+      
       this.storage = {
-        getString: (key: string) => localStorage.getItem(key),
-        set: (key: string, value: string) => localStorage.setItem(key, value),
-        remove: (key: string) => localStorage.removeItem(key),
-        contains: (key: string) => localStorage.getItem(key) !== null,
-        clearAll: () => localStorage.clear(),
-        getAllKeys: () => Object.keys(localStorage),
+        getString: (key: string) => (isBrowser ? localStorage.getItem(key) : memoryStorage.get(key)),
+        set: (key: string, value: string) => {
+          if (isBrowser) {
+            localStorage.setItem(key, value);
+          } else {
+            memoryStorage.set(key, value);
+          }
+        },
+        remove: (key: string) => {
+          if (isBrowser) {
+            localStorage.removeItem(key);
+          } else {
+            memoryStorage.delete(key);
+          }
+        },
+        contains: (key: string) => (isBrowser ? localStorage.getItem(key) !== null : memoryStorage.has(key)),
+        clearAll: () => {
+          if (isBrowser) {
+            localStorage.clear();
+          } else {
+            memoryStorage.clear();
+          }
+        },
+        getAllKeys: () => (isBrowser ? Object.keys(localStorage) : Array.from(memoryStorage.keys())),
       };
       return;
     }
 
-    // 2. MMKV v4 Initialization with Expo Go Fallback
+    // 2. Native (iOS/Android) with MMKV
     try {
-      // MMKV v4 recommended way is createMMKV, but class also works.
-      // We check if native MMKV is available.
+      // Check if we are in Expo Go or if native module is missing
+      // createMMKV might not throw immediately, so we test it
       this.storage = createMMKV({
         id: options?.id || 'ultrastore-default',
         encryptionKey: options?.encryptionKey,
       });
 
-      // Verification check (will throw in Expo Go)
+      // Verification check: getAllKeys() will throw if the native module is not linked (e.g. Expo Go)
       this.storage.getAllKeys();
     } catch (error) {
       this.isFallback = true;
       if (__DEV__) {
         console.warn(
           '[UltraStore] MMKV native module not found. Falling back to AsyncStorage + Memory. ' +
-            'Ensure you call await storage.hydrate() before using the store synchronously.'
+            'AsyncStorage is asynchronous, so initial values might be missing until storage.hydrate() is called.'
         );
       }
       this.storage = {
         getString: (key: string) => memoryStorage.get(key),
         set: (key: string, value: string) => {
           memoryStorage.set(key, value);
-          AsyncStorage.setItem(key, value).catch(console.error);
+          AsyncStorage.setItem(key, value).catch(err => 
+            console.error('[UltraStore] AsyncStorage set error:', err)
+          );
         },
         remove: (key: string) => {
           memoryStorage.delete(key);
-          AsyncStorage.removeItem(key).catch(console.error);
+          AsyncStorage.removeItem(key).catch(err => 
+            console.error('[UltraStore] AsyncStorage remove error:', err)
+          );
         },
         contains: (key: string) => memoryStorage.has(key),
         clearAll: () => {
           memoryStorage.clear();
-          AsyncStorage.clear().catch(console.error);
+          AsyncStorage.clear().catch(err => 
+            console.error('[UltraStore] AsyncStorage clear error:', err)
+          );
         },
         getAllKeys: () => Array.from(memoryStorage.keys()),
       };
@@ -87,9 +113,17 @@ class StorageEngine {
 
   /**
    * Hydrate memory store from AsyncStorage (Used only when MMKV fails)
+   * This is important for Expo Go users to restore state on app start.
    */
   async hydrate(): Promise<void> {
     if (!this.isFallback || this.isHydrated) return;
+    
+    // Only hydration makes sense for native fallback (AsyncStorage)
+    if (Platform.OS === 'web') {
+      this.isHydrated = true;
+      return;
+    }
+
     try {
       const keys = await AsyncStorage.getAllKeys();
       if (keys.length > 0) {
@@ -102,9 +136,22 @@ class StorageEngine {
       }
       this.isHydrated = true;
       this.log('Hydration complete');
+      
+      // Notify all listeners that state might have changed after hydration
+      this.listeners.forEach((set, key) => {
+        const val = this.get(key);
+        set.forEach(listener => listener(val));
+      });
     } catch (error) {
       console.error('[UltraStore] Failed to hydrate fallback store:', error);
     }
+  }
+
+  /**
+   * Check if the store is currently using a fallback (Expo Go / Web SSR)
+   */
+  getUsingFallback(): boolean {
+    return this.isFallback;
   }
 
   /**
@@ -136,7 +183,7 @@ class StorageEngine {
 
       return parsed;
     } catch (error) {
-      console.error(`[UltraStore] Error getting key "${key}":`, error);
+      this.log('GET ERROR', key, error);
       return undefined;
     }
   }
@@ -180,7 +227,7 @@ class StorageEngine {
       // MMKV v4 uses .remove() instead of .delete()
       if (typeof this.storage.remove === 'function') {
         this.storage.remove(key);
-      } else {
+      } else if (typeof this.storage.delete === 'function') {
         this.storage.delete(key);
       }
 
@@ -196,7 +243,11 @@ class StorageEngine {
    * Check if key exists
    */
   has(key: string): boolean {
-    return this.storage.contains(key);
+    try {
+      return this.storage.contains(key);
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -226,8 +277,8 @@ class StorageEngine {
   /**
    * Get raw MMKV instance
    */
-  getRawStorage(): MMKV {
-    return this.storage;
+  getRawStorage(): MMKV | null {
+    return this.isFallback ? null : this.storage;
   }
 
   /**

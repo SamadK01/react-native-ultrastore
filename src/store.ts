@@ -35,15 +35,35 @@ class Store<T = any> {
   }
 
   /**
-   * Set new value
+   * Set new value (supports async actions/promises/thunks)
    */
-  setValue(action: SetStateAction<T>): void {
-    const newValue =
-      typeof action === 'function'
-        ? (action as (prevState: T) => T)(this.currentValue)
-        : action;
+  setValue(action: SetStateAction<T>): void | Promise<void> {
+    if (action instanceof Promise) {
+      return action.then((val) => this.applyValue(val));
+    }
 
-    // Only update if value changed
+    if (typeof action === 'function') {
+      // Check if it's a thunk: (set, get) => ...
+      // Functions with 2 arguments are treated as thunks
+      if (action.length === 2) {
+        return (action as any)(
+          (val: any) => this.setValue(val),
+          () => this.getValue()
+        );
+      }
+
+      // Regular updater: (prev) => next
+      const result = (action as any)(this.currentValue);
+      if (result instanceof Promise) {
+        return result.then((val) => this.applyValue(val));
+      }
+      return this.applyValue(result);
+    }
+
+    return this.applyValue(action as T);
+  }
+
+  private applyValue(newValue: T) {
     if (newValue !== this.currentValue) {
       this.currentValue = newValue;
       this.storage.set(this.key, newValue);
