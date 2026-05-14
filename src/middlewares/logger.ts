@@ -5,6 +5,8 @@
 
 import type { Middleware } from '../types';
 
+const sanitize = (s: string) => String(s).replace(/[\r\n\t]/g, ' ').slice(0, 200);
+
 /**
  * Create a logger middleware for debugging
  *
@@ -27,9 +29,10 @@ export function createLoggerMiddleware(options?: {
   return {
     onBeforeSet: (key, value, oldValue) => {
       if (__DEV__) {
+        const safeKey = sanitize(key);
         const groupFn = collapsed ? console.groupCollapsed : console.group;
         groupFn(
-          `%c[UltraStore] SET ${key}`,
+          `%c[UltraStore] SET ${safeKey}`,
           colors ? 'color: #4CAF50; font-weight: bold' : ''
         );
         console.log('Old Value:', oldValue);
@@ -40,7 +43,7 @@ export function createLoggerMiddleware(options?: {
     onAfterGet: (key, value) => {
       if (__DEV__) {
         console.log(
-          `%c[UltraStore] GET ${key}`,
+          `%c[UltraStore] GET ${sanitize(key)}`,
           colors ? 'color: #2196F3; font-weight: bold' : '',
           value
         );
@@ -49,7 +52,7 @@ export function createLoggerMiddleware(options?: {
     onDelete: (key) => {
       if (__DEV__) {
         console.log(
-          `%c[UltraStore] DELETE ${key}`,
+          `%c[UltraStore] DELETE ${sanitize(key)}`,
           colors ? 'color: #F44336; font-weight: bold' : ''
         );
       }

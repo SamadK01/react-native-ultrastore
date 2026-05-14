@@ -135,7 +135,7 @@ class StorageEngine {
         });
       }
       this.isHydrated = true;
-      this.log('Hydration complete');
+      this.log('Hydration complete', '');
       
       // Notify all listeners that state might have changed after hydration
       this.listeners.forEach((set, key) => {
@@ -183,7 +183,7 @@ class StorageEngine {
 
       return parsed;
     } catch (error) {
-      this.log('GET ERROR', key, error);
+      this.log('GET ERROR', key, String(error));
       return undefined;
     }
   }
@@ -207,7 +207,7 @@ class StorageEngine {
 
     try {
       this.storage.set(key, JSON.stringify(finalValue));
-      this.log('SET', key, finalValue);
+      this.log('SET', key);
 
       // Notify Global Listeners
       this.emitChange(key, finalValue);
@@ -215,7 +215,7 @@ class StorageEngine {
       // Run after middleware
       this.middlewares.forEach((m) => m.onAfterSet?.(key, finalValue));
     } catch (error) {
-      console.error(`[UltraStore] Error setting key "${key}":`, error);
+      console.error(`[UltraStore] Error setting key "${key.replace(/[\r\n\t]/g, ' ').slice(0, 200)}":`, error);
     }
   }
 
@@ -235,7 +235,7 @@ class StorageEngine {
       this.emitChange(key, undefined);
       this.middlewares.forEach((m) => m.onDelete?.(key));
     } catch (error) {
-      console.error(`[UltraStore] Error deleting key "${key}":`, error);
+      console.error(`[UltraStore] Error deleting key "${key.replace(/[\r\n\t]/g, ' ').slice(0, 200)}":`, error);
     }
   }
 
@@ -256,7 +256,7 @@ class StorageEngine {
   clear(): void {
     try {
       this.storage.clearAll();
-      this.log('CLEAR ALL');
+      this.log('CLEAR ALL', '');
     } catch (error) {
       console.error('[UltraStore] Error clearing storage:', error);
     }
@@ -309,18 +309,26 @@ class StorageEngine {
         try {
           listener(value);
         } catch (error) {
-          console.error(`[UltraStore] Error in onChange listener for ${key}:`, error);
+          console.error(`[UltraStore] Error in onChange listener for ${key.replace(/[\r\n\t]/g, ' ').slice(0, 200)}:`, error);
         }
       });
     }
   }
 
   /**
+   * Sanitize a string for safe logging
+   */
+  private sanitizeLog(value: string): string {
+    return String(value).replace(/[\r\n\t]/g, ' ').slice(0, 200);
+  }
+
+  /**
    * Debug logger
    */
-  private log(action: string, ...args: any[]): void {
+  private log(action: string, key?: string, ...args: any[]): void {
     if (this.debug && __DEV__) {
-      console.log(`[UltraStore:${action}]`, ...args);
+      const safeKey = key !== undefined ? this.sanitizeLog(String(key)) : '';
+      console.log(`[UltraStore:${action}]`, safeKey, ...args);
     }
   }
 }

@@ -1,6 +1,8 @@
 import { createMMKV, type MMKV } from 'react-native-mmkv';
 import { StorageAdapter, StorageAdapterOptions } from './types';
 
+const sanitize = (s: string) => String(s).replace(/[\r\n\t]/g, ' ').slice(0, 200);
+
 export class MMKVAdapter implements StorageAdapter {
   private storage: MMKV;
   private namespace: string;
@@ -16,9 +18,7 @@ export class MMKVAdapter implements StorageAdapter {
     });
 
     if (this.debug) {
-      console.log(
-        `[MMKVAdapter] Initialized with namespace: ${this.namespace}`
-      );
+      console.log(`[MMKVAdapter] Initialized with namespace: ${sanitize(this.namespace)}`);
     }
   }
 
@@ -36,7 +36,7 @@ export class MMKVAdapter implements StorageAdapter {
       return JSON.parse(value) as T;
     } catch (error) {
       if (this.debug) {
-        console.error(`[MMKVAdapter] Error getting key ${key}:`, error);
+        console.error(`[MMKVAdapter] Error getting key ${sanitize(key)}:`, error);
       }
       return null;
     }
@@ -49,7 +49,7 @@ export class MMKVAdapter implements StorageAdapter {
       this.storage.set(fullKey, serialized);
     } catch (error) {
       if (this.debug) {
-        console.error(`[MMKVAdapter] Error setting key ${key}:`, error);
+        console.error(`[MMKVAdapter] Error setting key ${sanitize(key)}:`, error);
       }
       throw error;
     }
@@ -61,7 +61,7 @@ export class MMKVAdapter implements StorageAdapter {
       this.storage.remove(fullKey);
     } catch (error) {
       if (this.debug) {
-        console.error(`[MMKVAdapter] Error removing key ${key}:`, error);
+        console.error(`[MMKVAdapter] Error removing key ${sanitize(key)}:`, error);
       }
       throw error;
     }
@@ -95,7 +95,7 @@ export class MMKVAdapter implements StorageAdapter {
       return this.storage.contains(fullKey);
     } catch (error) {
       if (this.debug) {
-        console.error(`[MMKVAdapter] Error checking key ${key}:`, error);
+        console.error(`[MMKVAdapter] Error checking key ${sanitize(key)}:`, error);
       }
       return false;
     }

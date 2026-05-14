@@ -5,6 +5,8 @@
 
 import type { Middleware } from '../types';
 
+const sanitize = (s: string) => String(s).replace(/[\r\n\t]/g, ' ').slice(0, 200);
+
 export type ValidationRule<T> = (value: T) => boolean | string;
 
 /**
@@ -38,8 +40,8 @@ export function createValidatorMiddleware<T = any>(rules: {
         if (result !== true) {
           const errorMsg =
             typeof result === 'string'
-              ? result
-              : `Validation failed for ${key}`;
+              ? sanitize(result)
+              : `Validation failed for ${sanitize(key)}`;
           console.error(`[UltraStore] Validation Error: ${errorMsg}`);
           throw new Error(errorMsg);
         }
