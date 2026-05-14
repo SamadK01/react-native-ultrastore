@@ -7,6 +7,12 @@
   "types": "lib/types/index.d.ts",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
+  "expo": {
+    "install": {
+      "exclude": ["react-native-mmkv"]
+    }
+  },
+  "expoPlugin": "./plugin/index.js",
   "codegenConfig": {
     "name": "RNUltraStoreSpec",
     "type": "modules",
