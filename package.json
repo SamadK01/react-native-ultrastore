@@ -1,7 +1,7 @@
 {
   "name": "react-native-ultrastore",
-  "version": "2.2.0",
-  "description": "Ultra fast storage + state manager for React Native with MMKV v4, Nitro Modules, Atoms, and Zustand support.",
+  "version": "2.3.0",
+  "description": "Ultra fast storage + state manager for React Native with MMKV v4, Nitro Modules, Atoms, Zustand support, and persistent async query cache.",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
   "types": "lib/types/index.d.ts",
@@ -38,7 +38,7 @@
     "clean": "rm -rf lib",
     "build": "tsc && tsc -p tsconfig.cjs.json",
     "prepare": "npm run build",
-    "release": "npm publish --tag alpha",
+    "release": "npm publish",
     "example": "yarn workspace react-native-ultrastore-example",
     "bootstrap": "yarn install && yarn example && yarn install --cwd example && cd example/ios && pod install"
   },
@@ -58,6 +58,8 @@
     "encryption",
     "namespaces",
     "middleware",
+    "query-cache",
+    "offline-first",
     "ios",
     "android"
   ],
@@ -65,93 +67,7 @@
     "type": "git",
     "url": "git+https://github.com/SamadK01/react-native-ultrastore.git"
   },
-  "author": "Samad Khalid <samadkhalid@example.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/SamadK01/react-native-ultrastore/issues"
-  },
-  "homepage": "https://github.com/SamadK01/react-native-ultrastore#readme",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
-  "devDependencies": {
-    "@babel/plugin-transform-flow-strip-types": "^7.27.1",
-    "@babel/preset-env": "^7.29.2",
-    "@babel/preset-typescript": "^7.28.5",
-    "@react-native-community/bob": "^0.17.1",
-    "@react-native/eslint-config": "^0.74.0",
-    "@release-it/conventional-changelog": "^8.0.1",
-    "@types/jest": "^29.5.12",
-    "@types/react": "^18.3.26",
-    "@types/react-native": "^0.72.8",
-    "del-cli": "^5.1.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "jest": "^29.7.0",
-    "prettier": "^3.2.5",
-    "react": "18.2.0",
-    "react-native": "0.74.1",
-    "react-native-builder-bob": "^0.23.2",
-    "release-it": "^17.2.1",
-    "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
-  },
-  "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-native": ">=0.75.0",
-    "react-native-mmkv": ">=4.0.0",
-    "react-native-nitro-modules": ">=0.35.0"
-  },
-  "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.21.0"
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@react-native",
-      "prettier"
-    ],
-    "rules": {
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
-  "prettier": {
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "useTabs": false
-  },
-  "react-native-builder-bob": {
-    "source": "src",
-    "output": "lib",
-    "targets": [
-      "commonjs",
-      "module"
-    ],
-    "config": "bob.config.js"
-  }
-}
-
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SamadK01/react-native-ultrastore.git"
-  },
-  "author": "Samad Khalid <samadkhalid@example.com>",
+  "author": "Samad Khalid",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/SamadK01/react-native-ultrastore/issues"

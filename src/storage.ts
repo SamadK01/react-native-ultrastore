@@ -23,11 +23,7 @@ class StorageEngine {
     this.initializeStorage(options);
 
     if (__DEV__) {
-      this.log('StorageEngine initialized', {
-        id: options?.id,
-        fallback: this.isFallback,
-        platform: Platform.OS,
-      });
+      this.log('init', `id=${options?.id} fallback=${this.isFallback} platform=${Platform.OS}`);
     }
   }
 
