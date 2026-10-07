@@ -1,10 +1,10 @@
 export interface StorageAdapter {
-  get<T>(key: string): Promise<T | null>;
-  set<T>(key: string, value: T): Promise<void>;
-  remove(key: string): Promise<void>;
-  clearAll(): Promise<void>;
-  getKeys(): Promise<string[]>;
-  containsKey(key: string): Promise<boolean>;
+  get<T>(key: string): T | null;
+  set<T>(key: string, value: T): void;
+  remove(key: string): void;
+  clearAll(): void;
+  getKeys(): string[];
+  containsKey(key: string): boolean;
 }
 
 export type StorageAdapterType = 'mmkv' | 'sqlite' | 'secure';

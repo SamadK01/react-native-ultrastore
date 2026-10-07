@@ -11,6 +11,7 @@ class Store<T = any> {
   private listeners: Set<Listener<T>> = new Set();
   private storage: StorageEngine;
   private currentValue: T;
+  private unsubscribeStorage: () => void;
 
   constructor(key: string, initialValue: T, storage?: StorageEngine) {
     this.key = key;
@@ -25,6 +26,21 @@ class Store<T = any> {
     if (persistedValue === undefined) {
       this.storage.set(key, initialValue);
     }
+
+    // Single consolidated event pipeline via StorageEngine onChange
+    this.unsubscribeStorage = this.storage.onChange<T>(key, (val) => {
+      const nextValue = val !== undefined ? val : initialValue;
+      if (this.currentValue !== nextValue) {
+        this.currentValue = nextValue;
+      }
+      this.listeners.forEach((listener) => {
+        try {
+          listener(this.currentValue);
+        } catch (error) {
+          console.error('[UltraStore] Error in listener:', error);
+        }
+      });
+    });
   }
 
   /**
@@ -67,7 +83,6 @@ class Store<T = any> {
     if (newValue !== this.currentValue) {
       this.currentValue = newValue;
       this.storage.set(this.key, newValue);
-      this.notifyListeners();
     }
   }
 
@@ -84,19 +99,6 @@ class Store<T = any> {
   }
 
   /**
-   * Notify all listeners
-   */
-  private notifyListeners(): void {
-    this.listeners.forEach((listener) => {
-      try {
-        listener(this.currentValue);
-      } catch (error) {
-        console.error('[UltraStore] Error in listener:', error);
-      }
-    });
-  }
-
-  /**
    * Reset to initial value
    */
   reset(initialValue: T): void {
@@ -107,6 +109,7 @@ class Store<T = any> {
    * Delete from storage
    */
   delete(): void {
+    this.unsubscribeStorage();
     this.storage.delete(this.key);
     this.listeners.clear();
   }

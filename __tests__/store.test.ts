@@ -2,8 +2,8 @@
  * Store Tests
  */
 
-import { Store } from '../store';
-import { createStorage } from '../storage';
+import { Store } from '../src/store';
+import { createStorage } from '../src/storage';
 
 describe('Store', () => {
   let storage: ReturnType<typeof createStorage>;

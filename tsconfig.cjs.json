@@ -19,9 +19,9 @@
       "*": ["src/*", "node_modules/*"]
     },
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "declarationMap": false,
+    "sourceMap": false
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/__tests__", "**/__fixtures__", "**/__mocks__"]
+  "exclude": ["node_modules", "__tests__", "**/__tests__", "**/__fixtures__", "**/__mocks__"]
 }

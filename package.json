@@ -1,10 +1,37 @@
 {
   "name": "react-native-ultrastore",
-  "version": "2.3.0",
-  "description": "Ultra fast storage + state manager for React Native with MMKV v4, Nitro Modules, Atoms, Zustand support, and persistent async query cache.",
+  "version": "2.4.0",
+  "description": "Ultra-fast synchronous storage, state manager & on-device AI edge-cache for React Native (MMKV v4, Nitro Modules, New Architecture).",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
-  "types": "lib/types/index.d.ts",
+  "types": "lib/typescript/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/typescript/index.d.ts",
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js"
+    },
+    "./zustand": {
+      "types": "./lib/typescript/zustand.d.ts",
+      "import": "./lib/module/zustand.js",
+      "require": "./lib/commonjs/zustand.js"
+    },
+    "./query": {
+      "types": "./lib/typescript/hooks/useUltraQuery.d.ts",
+      "import": "./lib/module/hooks/useUltraQuery.js",
+      "require": "./lib/commonjs/hooks/useUltraQuery.js"
+    },
+    "./atom": {
+      "types": "./lib/typescript/atom.d.ts",
+      "import": "./lib/module/atom.js",
+      "require": "./lib/commonjs/atom.js"
+    },
+    "./ai": {
+      "types": "./lib/typescript/ai/index.d.ts",
+      "import": "./lib/module/ai/index.js",
+      "require": "./lib/commonjs/ai/index.js"
+    }
+  },
   "react-native": "src/index.ts",
   "source": "src/index.ts",
   "expo": {
@@ -19,30 +46,14 @@
     "jsSrcsDir": "src"
   },
   "files": [
-    "src",
-    "lib",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__",
-    "android",
-    "ios",
-    "cpp",
-    "*.podspec",
-    "!ios/build",
-    "!android/build",
-    "!android/gradle",
-    "!android/gradlew",
-    "!android/gradlew.bat",
-    "!android/local.properties",
-    "!**/.cxx",
-    "!**/.gradle"
+    "lib"
   ],
   "scripts": {
     "test": "jest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "rm -rf lib",
-    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "build": "bob build && del-cli 'lib/**/*.map'",
     "prepare": "npm run build",
     "release": "npm publish",
     "example": "yarn workspace react-native-ultrastore-example",
@@ -80,6 +91,7 @@
   },
   "homepage": "https://github.com/SamadK01/react-native-ultrastore#readme",
   "publishConfig": {
+    "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "devDependencies": {
@@ -106,14 +118,18 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
+    "@react-native-async-storage/async-storage": ">=1.0.0",
     "react": ">=18.0.0",
     "react-native": ">=0.75.0",
     "react-native-mmkv": ">=4.0.0",
     "react-native-nitro-modules": ">=0.35.0"
   },
-  "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.21.0"
+  "peerDependenciesMeta": {
+    "@react-native-async-storage/async-storage": {
+      "optional": true
+    }
   },
+  "dependencies": {},
   "eslintConfig": {
     "root": true,
     "extends": [

@@ -26,14 +26,18 @@ export class MMKVAdapter implements StorageAdapter {
     return `@${this.namespace}:${key}`;
   }
 
-  async get<T>(key: string): Promise<T | null> {
+  get<T>(key: string): T | null {
     try {
       const fullKey = this.getKey(key);
-      const value = this.storage.getString(fullKey);
-      if (value === undefined) {
+      const raw = this.storage.getString(fullKey);
+      if (raw === undefined || raw === null) {
         return null;
       }
-      return JSON.parse(value) as T;
+      if (raw.startsWith('s:')) return raw.slice(2) as unknown as T;
+      if (raw.startsWith('n:')) return Number(raw.slice(2)) as unknown as T;
+      if (raw.startsWith('b:')) return (raw === 'b:1') as unknown as T;
+      if (raw.startsWith('j:')) return JSON.parse(raw.slice(2)) as T;
+      return JSON.parse(raw) as T;
     } catch (error) {
       if (this.debug) {
         console.error(`[MMKVAdapter] Error getting key ${sanitize(key)}:`, error);
@@ -42,10 +46,19 @@ export class MMKVAdapter implements StorageAdapter {
     }
   }
 
-  async set<T>(key: string, value: T): Promise<void> {
+  set<T>(key: string, value: T): void {
     try {
       const fullKey = this.getKey(key);
-      const serialized = JSON.stringify(value);
+      let serialized: string;
+      if (typeof value === 'string') {
+        serialized = `s:${value}`;
+      } else if (typeof value === 'number') {
+        serialized = `n:${value}`;
+      } else if (typeof value === 'boolean') {
+        serialized = `b:${value ? '1' : '0'}`;
+      } else {
+        serialized = `j:${JSON.stringify(value)}`;
+      }
       this.storage.set(fullKey, serialized);
     } catch (error) {
       if (this.debug) {
@@ -55,7 +68,7 @@ export class MMKVAdapter implements StorageAdapter {
     }
   }
 
-  async remove(key: string): Promise<void> {
+  remove(key: string): void {
     try {
       const fullKey = this.getKey(key);
       this.storage.remove(fullKey);
@@ -67,7 +80,7 @@ export class MMKVAdapter implements StorageAdapter {
     }
   }
 
-  async clearAll(): Promise<void> {
+  clearAll(): void {
     try {
       this.storage.clearAll();
     } catch (error) {
@@ -78,7 +91,7 @@ export class MMKVAdapter implements StorageAdapter {
     }
   }
 
-  async getKeys(): Promise<string[]> {
+  getKeys(): string[] {
     try {
       return this.storage.getAllKeys();
     } catch (error) {
@@ -89,7 +102,7 @@ export class MMKVAdapter implements StorageAdapter {
     }
   }
 
-  async containsKey(key: string): Promise<boolean> {
+  containsKey(key: string): boolean {
     try {
       const fullKey = this.getKey(key);
       return this.storage.contains(fullKey);

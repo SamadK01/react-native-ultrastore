@@ -2,7 +2,7 @@
  * Storage Engine Tests
  */
 
-import { createStorage } from '../storage';
+import { createStorage } from '../src/storage';
 
 describe('StorageEngine', () => {
   let storage: ReturnType<typeof createStorage>;

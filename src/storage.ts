@@ -172,7 +172,22 @@ class StorageEngine {
 
     try {
       const value = this.storage.getString(key);
-      const parsed = value ? (JSON.parse(value) as T) : undefined;
+      if (value === undefined || value === null) {
+        return undefined;
+      }
+
+      let parsed: T | undefined;
+      if (value.startsWith('s:')) {
+        parsed = value.slice(2) as unknown as T;
+      } else if (value.startsWith('n:')) {
+        parsed = Number(value.slice(2)) as unknown as T;
+      } else if (value.startsWith('b:')) {
+        parsed = (value === 'b:1') as unknown as T;
+      } else if (value.startsWith('j:')) {
+        parsed = JSON.parse(value.slice(2)) as T;
+      } else {
+        parsed = JSON.parse(value) as T;
+      }
 
       this.middlewares.forEach((m) => m.onAfterGet?.(key, parsed));
       this.log('GET', key, parsed);
@@ -202,7 +217,18 @@ class StorageEngine {
     }
 
     try {
-      this.storage.set(key, JSON.stringify(finalValue));
+      let serialized: string;
+      if (typeof finalValue === 'string') {
+        serialized = `s:${finalValue}`;
+      } else if (typeof finalValue === 'number') {
+        serialized = `n:${finalValue}`;
+      } else if (typeof finalValue === 'boolean') {
+        serialized = `b:${finalValue ? '1' : '0'}`;
+      } else {
+        serialized = `j:${JSON.stringify(finalValue)}`;
+      }
+
+      this.storage.set(key, serialized);
       this.log('SET', key);
 
       // Notify Global Listeners

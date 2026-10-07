@@ -4,7 +4,6 @@
     "module": "esnext",
     "lib": ["es2017"],
     "jsx": "react-native",
-    "noEmit": false,
     "isolatedModules": true,
     "strict": true,
     "moduleResolution": "node",
@@ -13,21 +12,21 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./lib/module",
     "rootDir": "./src",
     "baseUrl": ".",
     "paths": {
       "*": ["src/*", "node_modules/*"]
     },
-    "sourceMap": true
+    "sourceMap": false
   },
   "include": ["src"],
   "exclude": [
     "node_modules",
     "lib",
     "example",
+    "__tests__",
     "**/__tests__",
     "**/__fixtures__",
     "**/__mocks__"
