@@ -1,6 +1,6 @@
 {
   "name": "react-native-ultrastore",
-  "version": "2.4.0",
+  "version": "3.0.0",
   "description": "Ultra-fast synchronous storage, state manager & on-device AI edge-cache for React Native (MMKV v4, Nitro Modules, New Architecture).",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -46,7 +46,8 @@
     "jsSrcsDir": "src"
   },
   "files": [
-    "lib"
+    "lib",
+    "plugin"
   ],
   "scripts": {
     "test": "jest",
@@ -119,6 +120,7 @@
   },
   "peerDependencies": {
     "@react-native-async-storage/async-storage": ">=1.0.0",
+    "@expo/config-plugins": ">=6.0.0",
     "react": ">=18.0.0",
     "react-native": ">=0.75.0",
     "react-native-mmkv": ">=4.0.0",
@@ -126,6 +128,9 @@
   },
   "peerDependenciesMeta": {
     "@react-native-async-storage/async-storage": {
+      "optional": true
+    },
+    "@expo/config-plugins": {
       "optional": true
     }
   },

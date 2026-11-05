@@ -5,7 +5,10 @@
 
 import type { Middleware } from '../types';
 
-const sanitize = (s: string) => String(s).replace(/[\r\n\t]/g, ' ').slice(0, 200);
+const sanitize = (s: string) =>
+  String(s)
+    .replace(/[\r\n\t]/g, ' ')
+    .slice(0, 200);
 
 export type ValidationRule<T> = (value: T) => boolean | string;
 

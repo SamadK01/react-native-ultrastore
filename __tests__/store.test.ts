@@ -2,7 +2,7 @@
  * Store Tests
  */
 
-import { Store } from '../src/store';
+import { Store, getStore } from '../src/store';
 import { createStorage } from '../src/storage';
 
 describe('Store', () => {
@@ -62,5 +62,29 @@ describe('Store', () => {
     // Create new store with same key
     const store2 = new Store('test', 'initial', storage);
     expect(store2.getValue()).toBe('persisted');
+  });
+
+  it('should reset active stores when storage is cleared', () => {
+    const store = new Store('test', 'initial', storage);
+    const listener = jest.fn();
+    store.subscribe(listener);
+    store.setValue('updated');
+    listener.mockClear();
+
+    storage.clear();
+
+    expect(store.getValue()).toBe('initial');
+    expect(listener).toHaveBeenCalledWith('initial');
+  });
+
+  it('should remove a deleted store from the registry', () => {
+    const first = getStore('deletable', 'initial', storage);
+    first.setValue('updated');
+    first.delete();
+
+    const replacement = getStore('deletable', 'replacement', storage);
+
+    expect(replacement).not.toBe(first);
+    expect(replacement.getValue()).toBe('replacement');
   });
 });

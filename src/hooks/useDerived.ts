@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { defaultStorage } from '../storage';
 
 /**
- * useDerived 
+ * useDerived
  * Computes a derived state from multiple store keys.
  * Only re-renders when the derived result changes or dependencies update.
  */

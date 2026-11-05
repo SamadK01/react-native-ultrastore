@@ -28,7 +28,9 @@ export class UltraStreamCache {
    */
   getStream(streamId: string): string {
     const tokens = this.activeStreams.get(streamId);
-    if (!tokens) return '';
+    if (!tokens) {
+      return '';
+    }
     return tokens.join('');
   }
 

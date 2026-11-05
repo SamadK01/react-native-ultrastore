@@ -10,6 +10,7 @@ jest.mock('react-native', () => {
       OS: 'ios',
       select: (obj) => obj.ios || obj.default || obj,
     },
+    unstable_batchedUpdates: (callback) => callback(),
     UIManager: {},
     NativeModules: {},
   };
@@ -17,16 +18,26 @@ jest.mock('react-native', () => {
 
 // Mock react-native-mmkv
 jest.mock('react-native-mmkv', () => {
-  const storage = new Map();
+  const stores = new Map();
+
+  const getStore = (id) => {
+    if (!stores.has(id)) {
+      stores.set(id, new Map());
+    }
+    return stores.get(id);
+  };
 
   return {
-    MMKV: jest.fn().mockImplementation(() => ({
-      set: jest.fn((key, value) => storage.set(key, value)),
-      getString: jest.fn((key) => storage.get(key)),
-      delete: jest.fn((key) => storage.delete(key)),
-      contains: jest.fn((key) => storage.has(key)),
-      clearAll: jest.fn(() => storage.clear()),
-      getAllKeys: jest.fn(() => Array.from(storage.keys())),
-    })),
+    createMMKV: jest.fn().mockImplementation(({ id = 'default' } = {}) => {
+      const storage = getStore(id);
+      return {
+        set: jest.fn((key, value) => storage.set(key, value)),
+        getString: jest.fn((key) => storage.get(key)),
+        remove: jest.fn((key) => storage.delete(key)),
+        contains: jest.fn((key) => storage.has(key)),
+        clearAll: jest.fn(() => storage.clear()),
+        getAllKeys: jest.fn(() => Array.from(storage.keys())),
+      };
+    }),
   };
 });

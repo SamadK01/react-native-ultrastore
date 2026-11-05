@@ -1,163 +1,139 @@
-# 🚀 UltraStore v2.4.0
+# UltraStore v3.0.0
 
 [![npm](https://img.shields.io/npm/v/react-native-ultrastore)](https://www.npmjs.com/package/react-native-ultrastore)
-[![Bundle Size](https://img.shields.io/badge/Bundle_Size-26.3_kB_gzipped-brightgreen)](#)
-[![Tests Passing](https://img.shields.io/badge/Tests-25%2F25_Passing-brightgreen)](#)
-[![New Architecture](https://img.shields.io/badge/New_Architecture-Ready-blue)](https://reactnative.dev/docs/the-new-architecture-introduction)
-[![Nitro Modules](https://img.shields.io/badge/Powered_by-Nitro_Modules-orange)](https://nitro.margelo.com/)
+[![React Native](https://img.shields.io/badge/React_Native-0.75%2B-61dafb)](https://reactnative.dev/)
+[![Architecture](https://img.shields.io/badge/Architecture-New_Architecture-blue)](https://reactnative.dev/docs/the-new-architecture-introduction)
 
-**Zero-latency synchronous storage, state manager, and on-device AI edge-cache for React Native.** Powered by **MMKV v4** and **Nitro Modules** for zero bridge overhead.
+Synchronous persisted state for React Native, powered by MMKV v4 and Nitro Modules. UltraStore combines a namespaced storage engine, React hooks, coordinated batch updates, and local AI-oriented utilities.
 
-> [!IMPORTANT]
-> **React Native 0.75+ required.** UltraStore uses MMKV v4 JSI bindings which target the New Architecture.
+> React Native 0.75+, React 18+, `react-native-mmkv` 4+, and `react-native-nitro-modules` are required for native synchronous storage. Web uses namespaced `localStorage`; unsupported native environments fall back to AsyncStorage after an explicit `hydrate()` call.
 
----
+## v3.0 highlights
 
-## 🔥 What's New in v2.4.0
+- Namespaced storage isolation on native, web, SSR, and the AsyncStorage fallback.
+- Per-`StorageEngine` store registries: identical keys in separate engines never share state or listeners.
+- Coordinated `setMany()` / `batchSet()` writes with a single batch notification and React Native `unstable_batchedUpdates`.
+- Instant `clear()` invalidation: mounted stores reset to their declared initial values in one React update cycle.
+- Store deletion disconnects subscriptions and removes the exact instance from the global registry.
+- Optional AI utilities for Base64-persisted `Float32Array` vectors, cosine search, stream accumulation, and context trimming.
 
-* ⚡ **Zero-Latency Synchronous JSI Engine**: Removed all `Promise` and `async/await` bridge wrappers in storage adapters. Operations now evaluate synchronously on the JavaScript thread in **<0.007ms**.
-* 📦 **54% Smaller Unpacked Package Size**: Reduced total bundle size from 303.7 kB down to **26.3 kB gzipped** by eliminating internal map metadata and scoping exports.
-* 🤖 **On-Device AI Edge-Cache Module (`react-native-ultrastore/ai`)**: Added native `Float32Array` embedding storage, zero-copy token streaming buffers (`UltraStreamCache`), and top-$K$ Cosine Similarity vector search for local RAG.
-* 🌳 **Tree-Shakeable Sub-Path Modularization**: Exposes scoped sub-paths for `react-native-ultrastore`, `/ai`, `/zustand`, `/query`, and `/atom`.
+## Install
 
----
+```bash
+npm install react-native-ultrastore react-native-mmkv react-native-nitro-modules
+```
 
-## ⚡ Performance Benchmarks (10,000 Operations)
+For Expo development builds, configure the included plugin and build a native app. Expo Go uses the asynchronous fallback; call `await storage.hydrate()` before relying on persisted fallback values.
 
-UltraStore implements a **scalar fast-path engine** (`s:`, `n:`, `b:` prefixes) that bypasses `JSON.stringify` and `JSON.parse` for primitive types (`string`, `number`, `boolean`), coupled with zero-overhead synchronous JSI bindings.
-
-| Operation (10,000 Ops) | **UltraStore (v2.4.0)** | Raw MMKV v4 | AsyncStorage |
-| :--- | :--- | :--- | :--- |
-| **Scalar Read** | **32.18 ms total (0.0032 ms / op)** 🚀 | 0.0030 ms / op | ~1,200 ms *(Async)* |
-| **Scalar Write** | **71.42 ms total (0.0071 ms / op)** 🚀 | 0.0068 ms / op | ~1,800 ms *(Async)* |
-| **Object Read** | **89.64 ms total (0.0090 ms / op)** | 0.0085 ms / op | ~2,100 ms *(Async)* |
-| **Object Write** | **132.85 ms total (0.0133 ms / op)** | 0.0125 ms / op | ~2,400 ms *(Async)* |
-| **Bridge Overhead** | **0 ms (100% Synchronous JSI)** | 0 ms | Bridge Queue Delay |
-
----
-
-## 💻 Code Examples
-
-### 1. Core Synchronous Engine
+## Core state
 
 ```tsx
-import { useUltraStore, defaultStorage } from 'react-native-ultrastore';
+import { useUltraStore } from 'react-native-ultrastore';
 
-// Pure synchronous read & write (No await needed)
-defaultStorage.set('user_name', 'Samad');
-const name = defaultStorage.get<string>('user_name'); // 'Samad' (0.003ms latency)
+function Profile() {
+  const [profile, setProfile] = useUltraStore('profile', {
+    name: 'Samad',
+    role: 'Developer',
+  });
 
-// React Hook integration
-function ProfileComponent() {
-  const [user, setUser] = useUltraStore('user_profile', { name: 'Samad', role: 'Dev' });
-  return <Text>{user.name}</Text>;
+  return <Button title={profile.name} onPress={() => setProfile((value) => ({ ...value, name: 'Ada' }))} />;
 }
 ```
 
----
+`useUltraStore` reads synchronously and persists every successful update. `useUltraStoreSelector`, `useUltraStoreValue`, and `useUltraStoreSetter` provide narrower subscriptions where appropriate.
 
-### 2. Native AI Edge-Cache (`react-native-ultrastore/ai`)
-
-```bash
-npm install react-native-ultrastore react-native-mmkv
-```
-
-#### A. Vector Embeddings Storage & Cosine Similarity Search
-
-Store `Float32Array` embeddings with zero array conversion penalty and query top-$K$ similar vectors directly on device.
+## Namespaces and lifecycle
 
 ```ts
-import { VectorStore, searchSimilarVectors } from 'react-native-ultrastore/ai';
+import { createNamespace, getStore } from 'react-native-ultrastore';
 
-const vectorStore = new VectorStore();
+const accountStorage = createNamespace('account');
+const catalogStorage = createNamespace('catalog');
 
-// Store 512-dim or 1536-dim Float32Array embedding
-const embedding = new Float32Array([0.12, -0.45, 0.89, 0.34, ...]);
-vectorStore.setVector('doc_chunk_1', embedding);
+accountStorage.set('id', 'user-1');
+catalogStorage.set('id', 'product-1'); // isolated from accountStorage
 
-// Perform top-K Cosine Similarity Search for local RAG
-const queryVector = new Float32Array([0.10, -0.42, 0.85, 0.31, ...]);
-const results = searchSimilarVectors(queryVector, 5);
+const account = getStore('id', '', accountStorage);
+account.delete(); // resets mounted subscribers, detaches listeners, and removes this registry entry
 
-console.log(results[0]);
-// => { key: 'doc_chunk_1', score: 0.9885, vector: Float32Array(...) }
+catalogStorage.clear(); // invalidates only catalogStorage's mounted stores
 ```
 
-#### B. Real-time LLM Token Streaming (`UltraStreamCache`)
+Storage IDs isolate persistent backends. Store identity is additionally bound to the exact `StorageEngine` instance, preventing listener collisions even when two engines use the same configured ID.
 
-Accumulate incoming streaming prompt tokens without re-parsing entire conversation histories on each token tick.
+## Coordinated batch updates
 
 ```ts
-import { UltraStreamCache } from 'react-native-ultrastore/ai';
+import { batchSet, defaultStorage } from 'react-native-ultrastore';
 
-const streamCache = new UltraStreamCache();
-const streamId = 'chat_session_102';
-
-// High-frequency token stream tick (Zero re-serialization overhead)
-onTokenChunkReceived((tokenChunk) => {
-  streamCache.appendStreamToken(streamId, tokenChunk);
-});
-
-// Access current rendered text string
-console.log(streamCache.getStream(streamId));
-
-// Flush accumulated response to disk storage upon stream completion
-const fullText = streamCache.flushStream(streamId);
+batchSet(
+  {
+    session: { userId: 'u1', token: 'token' },
+    theme: 'dark',
+    onboardingComplete: true,
+  },
+  defaultStorage
+);
 ```
 
----
+`batchSet()` delegates to `StorageEngine.setMany()`. All values are prepared before subscribers are notified; mounted hooks observing several updated keys are grouped with `unstable_batchedUpdates` into one React update cycle. AsyncStorage fallback persistence uses `multiSet()`. MMKV v4 exposes synchronous per-key writes rather than a native multi-set API, so UltraStore supplies the atomic JavaScript visibility and notification boundary after all MMKV writes complete.
 
-### 3. Zustand Persistence Integration (`react-native-ultrastore/zustand`)
+## Zustand persistence
 
 ```ts
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { createUltraZustandStorage } from 'react-native-ultrastore/zustand';
 
 const useStore = create(
   persist(
-    (set) => ({ count: 0, increment: () => set((s) => ({ count: s.count + 1 })) }),
-    {
-      name: 'app-storage',
-      storage: createJSONStorage(() => createUltraZustandStorage()),
-    }
+    (set) => ({ count: 0, increment: () => set((state) => ({ count: state.count + 1 })) }),
+    { name: 'app-storage', storage: createJSONStorage(() => createUltraZustandStorage()) }
   )
 );
 ```
 
----
-
-### 4. Persistent Query Cache (`react-native-ultrastore/query`)
-
-The only React Native hook that **persists API cache to disk via MMKV**. Survives app restarts and works offline.
+## Persistent query cache
 
 ```tsx
 import { useUltraQuery } from 'react-native-ultrastore/query';
 
-function UserProfile() {
-  const { data, isLoading, error } = useUltraQuery(
-    'user_profile',
-    () => fetch('https://api.example.com/me').then((r) => r.json()),
-    { staleTime: 60_000, cacheTime: 300_000 }
-  );
-
-  if (isLoading) return <ActivityIndicator />;
-  return <Text>{data?.name}</Text>;
-}
+const result = useUltraQuery(
+  'user-profile',
+  () => fetch('https://api.example.com/me').then((response) => response.json()),
+  { staleTime: 60_000, cacheTime: 300_000 }
+);
 ```
 
----
+The cached response is persisted through the selected storage engine. Fresh cache entries are returned on mount; stale entries are retained until a successful refetch or eviction.
 
-## 📦 Export Sub-Paths
+## AI utilities
 
-* `react-native-ultrastore` — Core synchronous engine & primary hooks
-* `react-native-ultrastore/ai` — Vector store, similarity search, stream cache & LRU
-* `react-native-ultrastore/zustand` — Zustand persistence adapter
-* `react-native-ultrastore/query` — Persistent async query cache
-* `react-native-ultrastore/atom` — Jotai-style atomic state engine
+```ts
+import { UltraStreamCache, VectorStore } from 'react-native-ultrastore/ai';
 
----
+const vectors = new VectorStore();
+vectors.setVector('chunk-1', new Float32Array([0.12, -0.45, 0.89]));
+const matches = vectors.searchSimilar(new Float32Array([0.1, -0.42, 0.85]), 5);
 
-## 📄 License
+const stream = new UltraStreamCache();
+stream.appendStreamToken('reply-1', 'Hello');
+stream.appendStreamToken('reply-1', ' world');
+stream.flushStream('reply-1');
+```
+
+Vectors are validated as finite, non-empty `Float32Array` values, encoded as Base64 for portable storage, then decoded into a per-store memory cache. Use `searchSimilar()` for cosine ranking, `searchNearest()` for Euclidean ranking, and `clearCache()` to release decoded vectors. The stream cache is in-memory until `flushStream()` persists it.
+
+## Export paths
+
+- `react-native-ultrastore` — storage, stores, hooks, middleware, batching, migrations, and utilities
+- `react-native-ultrastore/ai` — vector, stream, and context helpers
+- `react-native-ultrastore/zustand` — Zustand storage adapter
+- `react-native-ultrastore/query` — persistent query hook
+- `react-native-ultrastore/atom` — atomic-state helpers
+
+See [API.md](./API.md) for the complete surface area and [MIGRATION.md](./MIGRATION.md) for migration guidance.
+
+## License
 
 MIT © [Samad Khalid](https://github.com/SamadK01)

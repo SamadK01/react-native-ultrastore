@@ -12,6 +12,8 @@ class Store<T = any> {
   private storage: StorageEngine;
   private currentValue: T;
   private unsubscribeStorage: () => void;
+  private unsubscribeBatchStorage: () => void;
+  private isDisposed = false;
 
   constructor(key: string, initialValue: T, storage?: StorageEngine) {
     this.key = key;
@@ -28,7 +30,7 @@ class Store<T = any> {
     }
 
     // Single consolidated event pipeline via StorageEngine onChange
-    this.unsubscribeStorage = this.storage.onChange<T>(key, (val) => {
+    const notify = (val: T | undefined) => {
       const nextValue = val !== undefined ? val : initialValue;
       if (this.currentValue !== nextValue) {
         this.currentValue = nextValue;
@@ -40,6 +42,17 @@ class Store<T = any> {
           console.error('[UltraStore] Error in listener:', error);
         }
       });
+    };
+
+    this.unsubscribeStorage = this.storage.onChange<T>(key, (val) => {
+      if (!this.storage.isBatchNotificationInProgress()) {
+        notify(val);
+      }
+    });
+    this.unsubscribeBatchStorage = this.storage.onBatchChange((updates) => {
+      if (updates.has(this.key)) {
+        notify(updates.get(this.key) as T | undefined);
+      }
     });
   }
 
@@ -90,6 +103,10 @@ class Store<T = any> {
    * Subscribe to changes
    */
   subscribe(listener: Listener<T>): () => void {
+    if (this.isDisposed) {
+      return () => undefined;
+    }
+
     this.listeners.add(listener);
 
     // Return unsubscribe function
@@ -109,14 +126,51 @@ class Store<T = any> {
    * Delete from storage
    */
   delete(): void {
-    this.unsubscribeStorage();
+    if (this.isDisposed) {
+      return;
+    }
+
+    // Emit the deletion while still connected so mounted hooks reset before
+    // this instance is detached from storage.
     this.storage.delete(this.key);
+    this.dispose();
+  }
+
+  /**
+   * Detach this store from its storage engine and registry without mutating
+   * persisted data. Used for explicit registry cleanup.
+   */
+  dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
+
+    this.isDisposed = true;
+    this.unsubscribeStorage();
+    this.unsubscribeBatchStorage();
     this.listeners.clear();
+    removeStoreFromRegistry(this.key, this.storage, this);
   }
 }
 
-// Store registry to maintain singleton stores per key
+// Store registry to maintain singleton stores per storage-engine instance and key.
+// A storage id is not sufficient: two independently-created engines may use the
+// same id while intentionally keeping their subscriptions and in-memory state apart.
 const storeRegistry = new Map<string, Store<any>>();
+
+const getRegistryKey = (key: string, storage: StorageEngine): string =>
+  `${storage.getInstanceId()}:${key}`;
+
+const removeStoreFromRegistry = (
+  key: string,
+  storage: StorageEngine,
+  store: Store<any>
+): void => {
+  const registryKey = getRegistryKey(key, storage);
+  if (storeRegistry.get(registryKey) === store) {
+    storeRegistry.delete(registryKey);
+  }
+};
 
 /**
  * Get or create a store instance
@@ -126,17 +180,23 @@ export const getStore = <T>(
   initialValue: T,
   storage?: StorageEngine
 ): Store<T> => {
-  if (!storeRegistry.has(key)) {
-    storeRegistry.set(key, new Store(key, initialValue, storage));
+  const resolvedStorage = storage || defaultStorage;
+  const registryKey = getRegistryKey(key, resolvedStorage);
+
+  if (!storeRegistry.has(registryKey)) {
+    storeRegistry.set(
+      registryKey,
+      new Store(key, initialValue, resolvedStorage)
+    );
   }
-  return storeRegistry.get(key) as Store<T>;
+  return storeRegistry.get(registryKey) as Store<T>;
 };
 
 /**
  * Clear store registry (useful for testing)
  */
 export const clearStoreRegistry = (): void => {
-  storeRegistry.clear();
+  Array.from(storeRegistry.values()).forEach((store) => store.dispose());
 };
 
 export { Store };

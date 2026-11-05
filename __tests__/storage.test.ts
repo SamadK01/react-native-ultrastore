@@ -12,6 +12,10 @@ describe('StorageEngine', () => {
     storage.clear();
   });
 
+  it('should use the native MMKV backend in the test environment', () => {
+    expect(storage.getUsingFallback()).toBe(false);
+  });
+
   afterEach(() => {
     storage.clear();
   });
@@ -70,5 +74,50 @@ describe('StorageEngine', () => {
       undefined
     );
     expect(middleware.onAfterSet).toHaveBeenCalledWith('key1', 'value1');
+  });
+
+  it('should commit a batch before sending one batch notification', () => {
+    const listener = jest.fn();
+    storage.onBatchChange(listener);
+
+    storage.setMany({ first: 1, second: 2 });
+
+    expect(storage.get('first')).toBe(1);
+    expect(storage.get('second')).toBe(2);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0]).toEqual(
+      new Map([
+        ['first', 1],
+        ['second', 2],
+      ])
+    );
+  });
+
+  it('should invalidate every active key listener when cleared', () => {
+    const first = jest.fn();
+    const second = jest.fn();
+    storage.onChange('first', first);
+    storage.onChange('second', second);
+
+    storage.setMany({ first: 'one', second: 'two' });
+    first.mockClear();
+    second.mockClear();
+    storage.clear();
+
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledWith(undefined);
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledWith(undefined);
+  });
+
+  it('should isolate values between storage namespaces', () => {
+    const otherStorage = createStorage({ id: 'other-test-storage' });
+    otherStorage.clear();
+
+    storage.set('shared-key', 'primary');
+    otherStorage.set('shared-key', 'secondary');
+
+    expect(storage.get('shared-key')).toBe('primary');
+    expect(otherStorage.get('shared-key')).toBe('secondary');
   });
 });

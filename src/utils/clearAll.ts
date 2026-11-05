@@ -3,11 +3,10 @@
  */
 
 import { defaultStorage } from '../storage';
-import { clearStoreRegistry } from '../store';
 
 /**
  * Clear all data from UltraStore
- * Removes all persisted data and resets store registry
+ * Removes all persisted data and invalidates active stores.
  *
  * @example
  * ```tsx
@@ -19,5 +18,4 @@ import { clearStoreRegistry } from '../store';
  */
 export function clearAll(): void {
   defaultStorage.clear();
-  clearStoreRegistry();
 }

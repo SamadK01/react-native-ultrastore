@@ -1,5 +1,5 @@
 /**
- * react-native-ultrastore v2.0.0
+ * react-native-ultrastore v3.0.0
  * A super fast, lightweight storage + state management library
  * Powered by MMKV v4 + Nitro Modules
  */
@@ -12,7 +12,11 @@ export { useUltraStoreSetter } from './hooks/useUltraStoreSetter';
 export { useDerived } from './hooks/useDerived';
 export { useUltraHistory } from './hooks/useUltraHistory';
 export { useUltraQuery } from './hooks/useUltraQuery';
-export type { UltraQueryOptions, UltraQueryResult, QueryStatus } from './hooks/useUltraQuery';
+export type {
+  UltraQueryOptions,
+  UltraQueryResult,
+  QueryStatus,
+} from './hooks/useUltraQuery';
 
 // Storage
 export { defaultStorage, createStorage, StorageEngine } from './storage';

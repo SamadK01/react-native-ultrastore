@@ -1,4 +1,8 @@
-const { withPlugins, withPodfileProperties, withGradleProperties } = require('@expo/config-plugins');
+const {
+  withPlugins,
+  withPodfileProperties,
+  withGradleProperties,
+} = require('@expo/config-plugins');
 
 /**
  * UltraStore Expo Config Plugin
@@ -29,7 +33,11 @@ const withUltraStoreAndroid = (config) => {
     if (existing) {
       existing.value = 'true';
     } else {
-      mod.modResults.push({ type: 'property', key: 'newArchEnabled', value: 'true' });
+      mod.modResults.push({
+        type: 'property',
+        key: 'newArchEnabled',
+        value: 'true',
+      });
     }
     return mod;
   });
@@ -45,15 +53,12 @@ const withUltraStore = (config, options = {}) => {
   if (!enableNewArchitecture) {
     console.warn(
       '[UltraStore] Warning: MMKV v4 requires New Architecture. ' +
-      'Set enableNewArchitecture: true or use the Expo Go fallback (AsyncStorage).'
+        'Set enableNewArchitecture: true or use the Expo Go fallback (AsyncStorage).'
     );
     return config;
   }
 
-  return withPlugins(config, [
-    withUltraStoreIOS,
-    withUltraStoreAndroid,
-  ]);
+  return withPlugins(config, [withUltraStoreIOS, withUltraStoreAndroid]);
 };
 
 module.exports = withUltraStore;

@@ -25,7 +25,11 @@ export const createMigrationManager = async (
   storage: StorageEngine,
   config: MigrationConfig
 ): Promise<void> => {
-  const { migrations, targetVersion, versionKey = '@ultraStore:version' } = config;
+  const {
+    migrations,
+    targetVersion,
+    versionKey = '@ultraStore:version',
+  } = config;
   const currentVersion = storage.get<number>(versionKey) || 0;
 
   if (currentVersion >= targetVersion) {
@@ -41,7 +45,10 @@ export const createMigrationManager = async (
     try {
       await migrations[version](storage);
     } catch (err) {
-      console.error(`[UltraStore] Migration to version ${version} failed:`, err);
+      console.error(
+        `[UltraStore] Migration to version ${version} failed:`,
+        err
+      );
       // Halt migrations to prevent partial or corrupted upgrades
       return;
     }

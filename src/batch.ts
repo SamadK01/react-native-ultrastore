@@ -3,7 +3,6 @@
  */
 
 import { useCallback } from 'react';
-import { getStore } from './store';
 import { defaultStorage, StorageEngine } from './storage';
 
 /**
@@ -14,12 +13,7 @@ export function batchSet(
   updates: Record<string, any>,
   storage: StorageEngine = defaultStorage
 ): void {
-  Object.entries(updates).forEach(([key, value]) => {
-    // We get the store for each key to ensure listeners are notified
-    // but the actual write happens efficiently through MMKV
-    const store = getStore(key, value, storage);
-    store.setValue(value);
-  });
+  storage.setMany(updates);
 }
 
 /**

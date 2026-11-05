@@ -3,7 +3,7 @@ import { useUltraStore } from './useUltraStore';
 
 /**
  * Hook to manage history (undo/redo) for a specific store key.
- * 
+ *
  * @param key - The store key to track
  * @param initialValue - Initial value
  * @param options - maxHistory: number of states to keep (default 20)
@@ -37,7 +37,7 @@ export function useUltraHistory<T>(
           }
           return newPast;
         });
-        
+
         // Clear future when making a new change
         setFuture([]);
 
@@ -48,7 +48,9 @@ export function useUltraHistory<T>(
   );
 
   const undo = useCallback(() => {
-    if (past.length === 0) return;
+    if (past.length === 0) {
+      return;
+    }
 
     const previous = past[past.length - 1];
     setPast((p) => p.slice(0, p.length - 1));
@@ -60,7 +62,9 @@ export function useUltraHistory<T>(
   }, [past, setStoreValue]);
 
   const redo = useCallback(() => {
-    if (future.length === 0) return;
+    if (future.length === 0) {
+      return;
+    }
 
     const next = future[0];
     setFuture((f) => f.slice(1));

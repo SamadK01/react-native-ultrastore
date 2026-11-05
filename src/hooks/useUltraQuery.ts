@@ -86,7 +86,9 @@ export function useUltraQuery<T>(
 
   const isStaleNow = (): boolean => {
     const entry = getCachedEntry();
-    if (!entry) return true;
+    if (!entry) {
+      return true;
+    }
     return Date.now() - entry.fetchedAt > staleTime;
   };
 
@@ -103,7 +105,9 @@ export function useUltraQuery<T>(
   const cacheTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleCacheEviction = useCallback(() => {
-    if (cacheTimerRef.current) clearTimeout(cacheTimerRef.current);
+    if (cacheTimerRef.current) {
+      clearTimeout(cacheTimerRef.current);
+    }
     cacheTimerRef.current = setTimeout(() => {
       storage.delete(cacheKey);
       storage.delete(metaKey);
@@ -111,13 +115,19 @@ export function useUltraQuery<T>(
   }, [cacheKey, metaKey, cacheTime, storage]);
 
   const execute = useCallback(async () => {
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
     setIsFetching(true);
-    if (status === 'idle') setStatus('loading');
+    if (status === 'idle') {
+      setStatus('loading');
+    }
 
     try {
       const result = await fetcher();
-      if (!isMounted.current) return;
+      if (!isMounted.current) {
+        return;
+      }
 
       const entry: CachedEntry<T> = { data: result, fetchedAt: Date.now() };
       storage.set(cacheKey, entry);
@@ -129,15 +139,28 @@ export function useUltraQuery<T>(
       onSuccess?.(result);
       scheduleCacheEviction();
     } catch (err) {
-      if (!isMounted.current) return;
+      if (!isMounted.current) {
+        return;
+      }
       const e = err instanceof Error ? err : new Error(String(err));
       setError(e);
       setStatus('error');
       onError?.(e);
     } finally {
-      if (isMounted.current) setIsFetching(false);
+      if (isMounted.current) {
+        setIsFetching(false);
+      }
     }
-  }, [enabled, fetcher, cacheKey, storage, status, onSuccess, onError, scheduleCacheEviction]);
+  }, [
+    enabled,
+    fetcher,
+    cacheKey,
+    storage,
+    status,
+    onSuccess,
+    onError,
+    scheduleCacheEviction,
+  ]);
 
   const invalidate = useCallback(() => {
     storage.delete(cacheKey);
@@ -148,7 +171,9 @@ export function useUltraQuery<T>(
   useEffect(() => {
     isMounted.current = true;
 
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
     const entry = getCachedEntry();
     const stale = isStaleNow();
@@ -161,7 +186,9 @@ export function useUltraQuery<T>(
 
     return () => {
       isMounted.current = false;
-      if (cacheTimerRef.current) clearTimeout(cacheTimerRef.current);
+      if (cacheTimerRef.current) {
+        clearTimeout(cacheTimerRef.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryKey, enabled]);

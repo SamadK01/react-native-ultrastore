@@ -30,7 +30,11 @@ export function trimContextWindow(
   let systemPrompt: ChatMessage | undefined;
   let conversation = [...messages];
 
-  if (preserveSystemPrompt && conversation.length > 0 && conversation[0].role === 'system') {
+  if (
+    preserveSystemPrompt &&
+    conversation.length > 0 &&
+    conversation[0].role === 'system'
+  ) {
     systemPrompt = conversation[0];
     conversation = conversation.slice(1);
   }

@@ -13,7 +13,11 @@ let stateCache: Record<string, any> = {};
  */
 export function createDevToolsMiddleware(): Middleware {
   // Initialize Redux DevTools bridge if in DEV and on Web (or with a bridge library)
-  if (__DEV__ && typeof window !== 'undefined' && (window as any).__REDUX_DEVTOOLS_EXTENSION__) {
+  if (
+    __DEV__ &&
+    typeof window !== 'undefined' &&
+    (window as any).__REDUX_DEVTOOLS_EXTENSION__
+  ) {
     devTools = (window as any).__REDUX_DEVTOOLS_EXTENSION__.connect({
       name: 'UltraStore',
     });
@@ -33,7 +37,10 @@ export function createDevToolsMiddleware(): Middleware {
 
         // Redux DevTools Sync
         if (devTools) {
-          devTools.send({ type: `SET_${key.toUpperCase()}`, payload: value }, stateCache);
+          devTools.send(
+            { type: `SET_${key.toUpperCase()}`, payload: value },
+            stateCache
+          );
         }
 
         // Global state exposure for Metro

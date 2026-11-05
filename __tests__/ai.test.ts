@@ -5,7 +5,9 @@
 import { createStorage } from '../src/storage';
 import {
   VectorStore,
+  base64ToFloat32Array,
   cosineSimilarity,
+  euclideanDistance,
   searchSimilarVectors,
   UltraStreamCache,
   trimContextWindow,
@@ -68,6 +70,15 @@ describe('AI Edge-Cache Module', () => {
       expect(cosineSimilarity(vecA, vecC)).toBeCloseTo(0.0);
     });
 
+    it('should calculate Euclidean distance and reject invalid vectors', () => {
+      const origin = new Float32Array([0, 0]);
+      const point = new Float32Array([3, 4]);
+
+      expect(euclideanDistance(origin, point)).toBe(5);
+      expect(euclideanDistance(origin, new Float32Array([1]))).toBe(Infinity);
+      expect(base64ToFloat32Array('invalid base64').length).toBe(0);
+    });
+
     it('should perform top-K vector similarity search correctly', () => {
       const vecStore = new VectorStore(storage, 'embeddings');
       vecStore.setVector('doc_exact', new Float32Array([1, 0, 0]));
@@ -81,6 +92,26 @@ describe('AI Edge-Cache Module', () => {
       expect(results[0].key).toBe('doc_exact');
       expect(results[0].score).toBeCloseTo(1.0);
       expect(results[1].key).toBe('doc_similar');
+    });
+
+    it('should keep cache mutations isolated and support nearest search', () => {
+      const vecStore = new VectorStore(storage, 'cache');
+      vecStore.setVector('near', new Float32Array([1, 1]));
+      vecStore.setVector('far', new Float32Array([4, 5]));
+      vecStore.setVector('invalid', new Float32Array([NaN]));
+
+      const retrieved = vecStore.getVector('near')!;
+      retrieved[0] = 99;
+      vecStore.clearCache();
+
+      expect(vecStore.getVector('near')).toEqual(new Float32Array([1, 1]));
+      expect(vecStore.getVector('invalid')).toBeNull();
+      expect(
+        vecStore.searchNearest(new Float32Array([0, 0]), 1)[0]
+      ).toMatchObject({
+        key: 'near',
+        distance: Math.sqrt(2),
+      });
     });
 
     it('should support searchSimilarVectors standalone function', () => {
@@ -104,7 +135,11 @@ describe('AI Edge-Cache Module', () => {
       streamCache.appendStreamToken(streamId, 'world');
 
       expect(streamCache.getStream(streamId)).toBe('Hello world');
-      expect(streamCache.getStreamTokens(streamId)).toEqual(['Hello', ' ', 'world']);
+      expect(streamCache.getStreamTokens(streamId)).toEqual([
+        'Hello',
+        ' ',
+        'world',
+      ]);
 
       const flushedText = streamCache.flushStream(streamId);
       expect(flushedText).toBe('Hello world');
@@ -123,7 +158,9 @@ describe('AI Edge-Cache Module', () => {
         { role: 'assistant', content: 'Reply 2' },
       ];
 
-      const trimmed = trimContextWindow(messages, 3, { preserveSystemPrompt: true });
+      const trimmed = trimContextWindow(messages, 3, {
+        preserveSystemPrompt: true,
+      });
       expect(trimmed).toHaveLength(3);
       expect(trimmed[0].role).toBe('system');
       expect(trimmed[1].content).toBe('Msg 2');
