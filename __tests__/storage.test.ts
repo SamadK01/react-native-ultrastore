@@ -3,6 +3,7 @@
  */
 
 import { createStorage } from '../src/storage';
+import { createMigrationManager } from '../src/migrations';
 
 describe('StorageEngine', () => {
   let storage: ReturnType<typeof createStorage>;
@@ -29,6 +30,52 @@ describe('StorageEngine', () => {
     const obj = { name: 'Samad', age: 25 };
     storage.set('user', obj);
     expect(storage.get('user')).toEqual(obj);
+  });
+
+  it('returns undefined for a corrupted JSON payload', () => {
+    storage.getRawStorage()!.set('corrupted', 'j:{not-json');
+
+    expect(storage.get('corrupted')).toBeUndefined();
+  });
+
+  it('runs migrations from an absent or malformed stored version', async () => {
+    const migrateOne = jest.fn((db) => db.set('migrated', true));
+    storage.set('@ultraStore:version', 'not-a-version');
+
+    await createMigrationManager(storage, {
+      targetVersion: 1,
+      migrations: { 1: migrateOne },
+    });
+
+    expect(migrateOne).toHaveBeenCalledWith(storage);
+    expect(storage.get('migrated')).toBe(true);
+    expect(storage.get('@ultraStore:version')).toBe(1);
+  });
+
+  it('does not advance the schema version when a migration fails', async () => {
+    storage.set('@ultraStore:version', 1);
+    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await createMigrationManager(storage, {
+      targetVersion: 2,
+      migrations: {
+        2: () => {
+          throw new Error('migration failed');
+        },
+      },
+    });
+
+    expect(storage.get('@ultraStore:version')).toBe(1);
+    error.mockRestore();
+  });
+
+  it('rejects an invalid target schema version', async () => {
+    await expect(
+      createMigrationManager(storage, {
+        targetVersion: 1.5,
+        migrations: {},
+      })
+    ).rejects.toThrow('targetVersion must be a non-negative integer');
   });
 
   it('should handle arrays', () => {

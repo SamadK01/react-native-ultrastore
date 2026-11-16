@@ -1,6 +1,6 @@
 {
   "name": "react-native-ultrastore",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Ultra-fast synchronous storage, state manager & on-device AI edge-cache for React Native (MMKV v4, Nitro Modules, New Architecture).",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -32,11 +32,32 @@
       "require": "./lib/commonjs/ai/index.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "ai": [
+        "lib/typescript/ai/index.d.ts"
+      ],
+      "zustand": [
+        "lib/typescript/zustand.d.ts"
+      ],
+      "query": [
+        "lib/typescript/hooks/useUltraQuery.d.ts"
+      ],
+      "atom": [
+        "lib/typescript/atom.d.ts"
+      ],
+      "*": [
+        "lib/typescript/*"
+      ]
+    }
+  },
   "react-native": "src/index.ts",
   "source": "src/index.ts",
   "expo": {
     "install": {
-      "exclude": ["react-native-mmkv"]
+      "exclude": [
+        "react-native-mmkv"
+      ]
     }
   },
   "expoPlugin": "./plugin/index.js",
@@ -47,8 +68,17 @@
   },
   "files": [
     "lib",
-    "plugin"
+    "plugin",
+    "README.md",
+    "API.md",
+    "MIGRATION.md",
+    "BENCHMARKS.md",
+    "CHANGELOG.md",
+    "llms.txt",
+    "llms-full.txt",
+    ".cursorrules"
   ],
+  "sideEffects": false,
   "scripts": {
     "test": "jest",
     "typecheck": "tsc --noEmit",
@@ -78,6 +108,9 @@
     "middleware",
     "query-cache",
     "offline-first",
+    "on-device-ai",
+    "vector-search",
+    "edge-cache",
     "ios",
     "android"
   ],
@@ -99,6 +132,7 @@
     "@babel/plugin-transform-flow-strip-types": "^7.27.1",
     "@babel/preset-env": "^7.29.2",
     "@babel/preset-typescript": "^7.28.5",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/bob": "^0.17.1",
     "@react-native/eslint-config": "^0.74.0",
     "@release-it/conventional-changelog": "^8.0.1",
@@ -114,13 +148,14 @@
     "react": "18.2.0",
     "react-native": "0.74.1",
     "react-native-builder-bob": "^0.23.2",
+    "react-test-renderer": "^18.2.0",
     "release-it": "^17.2.1",
     "ts-jest": "^29.4.9",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@react-native-async-storage/async-storage": ">=1.0.0",
     "@expo/config-plugins": ">=6.0.0",
+    "@react-native-async-storage/async-storage": ">=1.0.0",
     "react": ">=18.0.0",
     "react-native": ">=0.75.0",
     "react-native-mmkv": ">=4.0.0",
@@ -134,7 +169,6 @@
       "optional": true
     }
   },
-  "dependencies": {},
   "eslintConfig": {
     "root": true,
     "extends": [

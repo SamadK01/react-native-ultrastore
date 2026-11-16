@@ -4,21 +4,8 @@ const {
   withGradleProperties,
 } = require('@expo/config-plugins');
 
-/**
- * UltraStore Expo Config Plugin
- * Automatically configures MMKV for production Expo builds.
- *
- * Usage in app.json / app.config.js:
- * {
- *   "plugins": [
- *     ["react-native-ultrastore", { "enableNewArchitecture": true }]
- *   ]
- * }
- */
-
 const withUltraStoreIOS = (config) => {
   return withPodfileProperties(config, (mod) => {
-    // Enable New Architecture for MMKV v4
     mod.modResults['ios.newArchEnabled'] = 'true';
     return mod;
   });
@@ -26,7 +13,6 @@ const withUltraStoreIOS = (config) => {
 
 const withUltraStoreAndroid = (config) => {
   return withGradleProperties(config, (mod) => {
-    // Enable New Architecture for MMKV v4
     const existing = mod.modResults.find(
       (item) => item.type === 'property' && item.key === 'newArchEnabled'
     );

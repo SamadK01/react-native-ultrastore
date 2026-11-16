@@ -1,75 +1,118 @@
-# API Reference (v3.0.0)
+# API reference — v3.1
+
+All root APIs are imported from `react-native-ultrastore`. Use the documented sub-paths for optional integrations.
 
 ## Storage
 
-### `defaultStorage` and `createStorage(options?)`
-
 ```ts
-const storage = createStorage({ id?: string, encryptionKey?: string });
+createStorage(options?: UltraStoreOptions): StorageEngine
+defaultStorage: StorageEngine
+
+interface UltraStoreOptions { id?: string; encryptionKey?: string }
+type Listener<T> = (value: T) => void
 ```
 
-Each `StorageEngine` owns an isolated namespace and an independent store registry identity.
+| Member | Signature | Edge behavior |
+| --- | --- | --- |
+| Read | `get<T>(key: string): T \| undefined` | Returns `undefined` for absent or corrupted payloads. |
+| Write | `set<T>(key: string, value: T): void` | Scalars use string/number/boolean fast paths; other values are JSON encoded. |
+| Batch | `setMany(updates: Record<string, any>): void` | Completes writes before one React-batched notification; not a native multi-key transaction. |
+| Delete | `delete(key: string): void` | Subscribers receive `undefined`. |
+| Clear | `clear(): void` | Invalidates every active key listener in this engine. |
+| Inspect | `has(key): boolean`, `getAllKeys(): string[]`, `getRawStorage(): MMKV \| null` | Raw storage is `null` on fallback. |
+| Fallback | `hydrate(): Promise<void>`, `getUsingFallback(): boolean` | Hydration is needed only on the native AsyncStorage fallback. |
+| Subscribe | `onChange<T>(key, listener): () => void`, `onBatchChange(listener): () => void` | Batch listeners receive `ReadonlyMap<string, any>`. |
+| Middleware | `use(middleware: Middleware): void`, `setDebug(enabled: boolean): void` | Middleware exceptions abort that set. |
 
-| Method | Description |
-| --- | --- |
-| `get<T>(key)` | Synchronously returns a decoded value or `undefined`. |
-| `set<T>(key, value)` | Persists a value and notifies key subscribers. |
-| `setMany(updates)` | Commits prepared values before emitting one batch notification. |
-| `delete(key)` | Removes one value and notifies subscribers with `undefined`. |
-| `clear()` | Clears this namespace and invalidates every active key listener. Mounted stores reset to their initial values. |
-| `has(key)` / `getAllKeys()` | Inspect this namespace. |
-| `hydrate()` | Loads the namespaced AsyncStorage fallback into memory; unnecessary with MMKV or browser localStorage. |
-| `onChange(key, listener)` | Subscribe to one key. Returns an unsubscribe function. |
-| `onBatchChange(listener)` | Subscribe once per committed `setMany()` batch. |
-| `use(middleware)` | Register storage middleware. |
-| `getUsingFallback()` | Indicates an unsupported native or SSR fallback. |
+`Middleware<T>` supports `onBeforeSet`, `onAfterSet`, `onBeforeGet`, `onAfterGet`, and `onDelete`. `createNamespace(namespace, options?)` returns a storage engine whose ID is `ultrastore-${namespace}`. `clearAll()`, `removeKey(key)`, and `getAllKeys()` operate on `defaultStorage`.
 
-### Namespaces
+## Persisted stores and hooks
 
 ```ts
-const userStorage = createNamespace('user');
-const cartStorage = createNamespace('cart');
+type SetStateAction<T> = T | Promise<T> | ((previous: T) => T | Promise<T>) | Thunk<T>
+type Thunk<T> = (set, get) => void | Promise<void>
+
+useUltraStore<T>(key, initialValue, storage?): [T, (action: SetStateAction<T>) => void | Promise<void>]
+useUltraStoreValue<T>(key, initialValue, storage?): T
+useUltraStoreSetter<T>(key, initialValue, storage?): (action: SetStateAction<T>) => void
+useUltraStoreSelector<T, R>(key, selector: (state: T) => R, initialValue, storage?): R
+useDerived<T extends any[], R>(keys: string[], compute: (...values: T) => R): R
+useUltraHistory<T>(key, initialValue, options?: { maxHistory?: number }): HistoryResult<T>
+getStore<T>(key, initialValue, storage?): Store<T>
+clearStoreRegistry(): void
 ```
 
-Namespaces isolate native MMKV IDs, web keys, and AsyncStorage fallback keys. A store cache is also tied to its precise `StorageEngine` instance.
+Store identity is scoped to the exact `StorageEngine` instance and key. `Store` exposes `getValue()`, `setValue(action)`, `subscribe(listener)`, `reset(initialValue)`, `delete()`, and `dispose()`. A selector uses reference equality; return stable values when avoiding renders matters. `useDerived` observes `defaultStorage` only.
 
-## Stores and hooks
+`HistoryResult<T>` contains `value`, `setValue`, `undo`, `redo`, `past`, `future`, `canUndo`, and `canRedo`. History is in memory and is not persisted separately.
+
+## Batching, atoms, migration, and middleware
 
 ```ts
-const [value, setValue] = useUltraStore(key, initialValue, storage?);
+batchSet(updates: Record<string, any>, storage?: StorageEngine): void
+useBatchUpdate(storage?: StorageEngine): (updates: Record<string, any>) => void
+
+createAtom<T>(key, initialValue, storage?): Atom<T>
+useUltraAtom<T>(atom: Atom<T>): [T, setter]
+interface Atom<T> { key: string; initialValue: T; storage?: StorageEngine }
+
+createMigrationManager(storage, config: MigrationConfig): Promise<void>
+interface MigrationConfig { migrations: Record<number, MigrationFunc>; targetVersion: number; versionKey?: string }
+type MigrationFunc = (storage: StorageEngine) => void | Promise<void>
+
+createLoggerMiddleware(options?: { collapsed?: boolean; colors?: boolean }): Middleware
+createValidatorMiddleware<T>(rules: Record<string, (value: T) => boolean | string>): Middleware<T>
+createDevToolsMiddleware(): Middleware
 ```
 
-`setValue` accepts a value, updater, Promise, or two-argument thunk. `Store.delete()` resets connected listeners through storage deletion, then detaches the store and purges its registry entry.
+Migration versions must be non-negative integers. Missing/malformed persisted versions start at `0`; a failed handler leaves the stored version unchanged. Sparse migration maps are supported. Validator failure stops the write.
 
-- `useUltraStoreSelector(key, selector, initialValue, storage?)`
-- `useUltraStoreValue(key, initialValue, storage?)`
-- `useUltraStoreSetter(key, initialValue, storage?)`
-- `useDerived(keys, compute)`
-- `useUltraHistory(key, initialValue, { maxHistory? })`
-- `getStore(key, initialValue, storage?)`
-- `clearStoreRegistry()` — detaches and removes all cached stores; intended for controlled teardown/tests.
-
-## Batching
+## Zustand and query sub-paths
 
 ```ts
-batchSet({ theme: 'dark', loggedIn: true }, storage?);
-const update = useBatchUpdate(storage?);
+// react-native-ultrastore/zustand
+createUltraZustandStorage(storage?: StorageEngine): {
+  getItem(name: string): string | null;
+  setItem(name: string, value: string): void;
+  removeItem(name: string): void;
+}
+
+// react-native-ultrastore/query
+useUltraQuery<T>(queryKey: string, fetcher: () => Promise<T>, options?: UltraQueryOptions<T>): UltraQueryResult<T>
 ```
 
-`batchSet` delegates to `setMany`. React Native updates are wrapped by `unstable_batchedUpdates`, so hooks that observe multiple changed keys receive one render cycle after the full batch is committed.
+`UltraQueryOptions<T>`: `staleTime?`, `cacheTime?`, `refetchOnMount?`, `onSuccess?`, `onError?`, `storage?`, and `enabled?`. Durations must be finite non-negative values; invalid durations use defaults. `UltraQueryResult<T>` contains `data`, `error`, `status`, `isLoading`, `isError`, `isSuccess`, `isFetching`, `isStale`, `refetch`, and `invalidate`.
 
-## Atoms, migrations, and adapters
-
-- `createAtom(key, initialValue, storage?)` / `useUltraAtom(atom)`
-- `createMigrationManager(storage, { migrations, targetVersion, versionKey? })`
-- `createUltraZustandStorage(storage?)`
-
-## Middleware
-
-- `createLoggerMiddleware(options?)`
-- `createValidatorMiddleware(rules)`
-- `createDevToolsMiddleware()`
+The query hook persists `{ data, fetchedAt }`. Invalid cache shapes are treated as misses; only the latest active request may update a mounted hook.
 
 ## AI sub-path
 
-`react-native-ultrastore/ai` exports `VectorStore`, `searchSimilarVectors`, `cosineSimilarity`, `euclideanDistance`, Base64 conversion helpers, `UltraStreamCache`, `defaultStreamCache`, and `trimContextWindow`. `VectorStore` validates finite non-empty `Float32Array` values, caches decoded vectors in memory, exposes `clearCache()`, and supports cosine (`searchSimilar`) and Euclidean (`searchNearest`) search.
+```ts
+// react-native-ultrastore/ai
+float32ArrayToBase64(vector: Float32Array): string
+base64ToFloat32Array(value: string): Float32Array
+cosineSimilarity(a: Float32Array, b: Float32Array): number
+euclideanDistance(a: Float32Array, b: Float32Array): number
+searchSimilarVectors(query, topK?, storage?, namespace?): VectorSearchResult[]
+
+new VectorStore(storage?: StorageEngine, namespace?: string)
+setVector(key: string, vector: Float32Array): void
+getVector(key: string): Float32Array | null
+deleteVector(key: string): void
+clearCache(): void
+searchSimilar(queryVector: Float32Array, topK?: number): VectorSearchResult[]
+searchNearest(queryVector: Float32Array, topK?: number): VectorDistanceResult[]
+
+new UltraStreamCache(storage?: StorageEngine)
+appendStreamToken(streamId: string, token: string): void
+getStream(streamId: string): string
+getStreamTokens(streamId: string): string[]
+flushStream(streamId: string): string
+clearStream(streamId: string): void
+
+trimContextWindow(messages: ChatMessage[], maxCount: number, options?: { preserveSystemPrompt?: boolean }): ChatMessage[]
+```
+
+`VectorSearchResult` is `{ key, score, vector }`; `VectorDistanceResult` is `{ key, distance, vector }`. Vectors must be finite, non-empty `Float32Array` values. Mismatched dimensions are skipped; invalid queries and `topK <= 0` return `[]`; `topK` above the collection size is capped naturally. Zero-magnitude cosine vectors score `0`. Vectors are Base64-persisted and ownership-copied at the public boundary; search walks cached typed arrays directly.
+
+`UltraStreamCache` is in-memory until `flushStream`. It does not publish React state, joins once per append burst, and releases its token array when flushed or cleared. `trimContextWindow` can keep an initial system message while retaining the newest messages.

@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.1.0] - 2026-11-16
+
+### Fixed
+
+- `useUltraQuery` now rejects structurally invalid cache entries and prevents stale in-flight requests from updating a remounted hook instance.
+- Migration version parsing now safely recovers from malformed stored versions and rejects invalid target versions.
+- Vector search no longer re-validates already-owned cache buffers for every candidate.
+- `UltraStreamCache` memoizes each joined snapshot and returns a copy of its token list, preventing consumer mutation from corrupting the active buffer.
+
+### Documentation and packaging
+
+- Added LLM-oriented API references and project rules, including explicit constraints around Base64 vector persistence and JavaScript-level batch visibility.
+- Added `typesVersions`, explicit package files, and side-effect metadata for TypeScript and tree-shaking consumers.
+- Replaced unverified benchmark and migration claims with reproducible guidance.
+
 ## [3.0.0] - 2026-11-05
 
 ### Changed

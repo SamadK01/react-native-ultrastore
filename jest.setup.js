@@ -41,3 +41,16 @@ jest.mock('react-native-mmkv', () => {
     }),
   };
 });
+
+jest.mock(
+  '@react-native-async-storage/async-storage',
+  () => ({
+    getAllKeys: jest.fn().mockResolvedValue([]),
+    multiGet: jest.fn().mockResolvedValue([]),
+    setItem: jest.fn().mockResolvedValue(undefined),
+    multiSet: jest.fn().mockResolvedValue(undefined),
+    removeItem: jest.fn().mockResolvedValue(undefined),
+    multiRemove: jest.fn().mockResolvedValue(undefined),
+  }),
+  { virtual: true }
+);

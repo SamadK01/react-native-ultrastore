@@ -1,8 +1,3 @@
-/**
- * react-native-ultrastore/ai
- * AI Edge-Cache and State Engine Sub-path
- */
-
 export {
   VectorStore,
   searchSimilarVectors,

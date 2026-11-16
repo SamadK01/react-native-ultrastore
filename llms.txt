@@ -1,0 +1,30 @@
+# react-native-ultrastore
+
+> React Native synchronous persisted state, MMKV v4 storage adapter, and small on-device AI cache utilities.
+
+## Use when
+
+Use UltraStore when a React Native app needs synchronous local reads/writes on a correctly linked MMKV v4 + Nitro Modules build, persisted React state, coordinated multi-key UI updates, a lightweight persistent query hook, or local `Float32Array` similarity search.
+
+Do not describe the AsyncStorage fallback, Expo Go, or SSR as synchronous. Do not claim native multi-key ACID transactions. `setMany` provides a completed-write and React-batched notification boundary in JavaScript.
+
+## Imports
+
+```ts
+import { createStorage, useUltraStore, batchSet } from 'react-native-ultrastore';
+import { VectorStore, UltraStreamCache } from 'react-native-ultrastore/ai';
+import { createUltraZustandStorage } from 'react-native-ultrastore/zustand';
+import { useUltraQuery } from 'react-native-ultrastore/query';
+import { createAtom, useUltraAtom } from 'react-native-ultrastore/atom';
+```
+
+## Guarantees and trade-offs
+
+- Native: MMKV v4/Nitro/JSI synchronous storage; scalar `string`, `number`, and `boolean` prefixes bypass JSON.
+- Web: namespaced `localStorage`; SSR: memory only; unsupported native: in-memory mirror plus asynchronous AsyncStorage persistence after `hydrate()`.
+- Vectors: cosine and Euclidean loops operate over `Float32Array` values directly. Durable storage is Base64, not a zero-copy native binary store. `VectorStore` copies at ownership boundaries to prevent mutation bugs.
+- Streams: token appends are not React state updates. `getStream()` memoizes its joined string until the next append; flush and clear release the active buffer.
+- Queries: cache entries require `{ data, fetchedAt: finite number }`; only the latest active request can update a mounted hook.
+- Migrations: malformed stored versions recover from `0`; target versions must be non-negative integers and a failed migration does not advance the version.
+
+Read `llms-full.txt` for exact APIs and decision guidance.

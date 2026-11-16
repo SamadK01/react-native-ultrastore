@@ -94,6 +94,24 @@ describe('AI Edge-Cache Module', () => {
       expect(results[1].key).toBe('doc_similar');
     });
 
+    it('handles empty collections, invalid topK, dimensions, and zero vectors safely', () => {
+      const vecStore = new VectorStore(storage, 'boundaries');
+      const query = new Float32Array([1, 0]);
+
+      expect(vecStore.searchSimilar(query)).toEqual([]);
+      vecStore.setVector('match', new Float32Array([1, 0]));
+      vecStore.setVector('mismatch', new Float32Array([1, 0, 0]));
+      vecStore.setVector('zero', new Float32Array([0, 0]));
+
+      expect(vecStore.searchSimilar(query, 0)).toEqual([]);
+      expect(vecStore.searchSimilar(query, -1)).toEqual([]);
+      expect(vecStore.searchSimilar(query, 99)).toHaveLength(2);
+      expect(vecStore.searchSimilar(new Float32Array([1]), 5)).toEqual([]);
+      expect(vecStore.searchSimilar(new Float32Array([0, 0]), 5)).toHaveLength(
+        2
+      );
+    });
+
     it('should keep cache mutations isolated and support nearest search', () => {
       const vecStore = new VectorStore(storage, 'cache');
       vecStore.setVector('near', new Float32Array([1, 1]));
@@ -145,6 +163,36 @@ describe('AI Edge-Cache Module', () => {
       expect(flushedText).toBe('Hello world');
       expect(streamCache.getStream(streamId)).toBe('');
       expect(storage.get(streamId)).toBe('Hello world');
+    });
+
+    it('memoizes stream snapshots and never exposes its mutable chunk buffer', () => {
+      const streamCache = new UltraStreamCache(storage);
+      streamCache.appendStreamToken('reply', 'one');
+
+      const firstSnapshot = streamCache.getStream('reply');
+      const tokens = streamCache.getStreamTokens('reply');
+      tokens.push('corrupted');
+
+      expect(streamCache.getStream('reply')).toBe(firstSnapshot);
+      expect(streamCache.getStreamTokens('reply')).toEqual(['one']);
+
+      streamCache.appendStreamToken('reply', ' two');
+      expect(streamCache.getStream('reply')).toBe('one two');
+    });
+
+    it('releases completed and discarded chat buffers between sessions', () => {
+      const streamCache = new UltraStreamCache(storage);
+
+      streamCache.appendStreamToken('first', 'discard me');
+      streamCache.clearStream('first');
+      expect(streamCache.getStream('first')).toBe('');
+      expect(streamCache.getStreamTokens('first')).toEqual([]);
+
+      streamCache.appendStreamToken('second', 'persist me');
+      streamCache.flushStream('second');
+      expect(streamCache.getStream('second')).toBe('');
+      expect(streamCache.getStreamTokens('second')).toEqual([]);
+      expect(storage.get('second')).toBe('persist me');
     });
   });
 

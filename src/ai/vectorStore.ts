@@ -1,7 +1,3 @@
-/**
- * Portable vector persistence and in-memory search utilities for edge RAG.
- */
-
 import { defaultStorage, StorageEngine } from '../storage';
 
 const isValidVector = (value: unknown): value is Float32Array => {
@@ -28,7 +24,6 @@ const toBinary = (bytes: Uint8Array): string => {
   return binary;
 };
 
-/** Convert a finite Float32Array to a portable Base64 representation. */
 export function float32ArrayToBase64(array: Float32Array): string {
   if (!isValidVector(array)) {
     return '';
@@ -55,7 +50,6 @@ export function float32ArrayToBase64(array: Float32Array): string {
   }
 }
 
-/** Decode a Base64 vector. Invalid input returns an empty typed array. */
 export function base64ToFloat32Array(base64: string): Float32Array {
   if (typeof base64 !== 'string' || base64.length === 0) {
     return new Float32Array();
@@ -88,12 +82,18 @@ export function base64ToFloat32Array(base64: string): Float32Array {
   }
 }
 
-/** Return cosine similarity in [-1, 1], or 0 for invalid vectors. */
 export function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   if (!isValidVector(a) || !isValidVector(b) || a.length !== b.length) {
     return 0;
   }
 
+  return cosineSimilarityUnchecked(a, b);
+}
+
+const cosineSimilarityUnchecked = (
+  a: Float32Array,
+  b: Float32Array
+): number => {
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
@@ -111,14 +111,20 @@ export function cosineSimilarity(a: Float32Array, b: Float32Array): number {
   }
 
   return dotProduct / Math.sqrt(normA * normB);
-}
+};
 
-/** Return Euclidean distance, or Infinity for invalid or mismatched vectors. */
 export function euclideanDistance(a: Float32Array, b: Float32Array): number {
   if (!isValidVector(a) || !isValidVector(b) || a.length !== b.length) {
     return Infinity;
   }
 
+  return euclideanDistanceUnchecked(a, b);
+}
+
+const euclideanDistanceUnchecked = (
+  a: Float32Array,
+  b: Float32Array
+): number => {
   let squaredDistance = 0;
   for (let index = 0; index < a.length; index += 1) {
     const difference = a[index] - b[index];
@@ -126,7 +132,7 @@ export function euclideanDistance(a: Float32Array, b: Float32Array): number {
   }
 
   return Math.sqrt(squaredDistance);
-}
+};
 
 export interface VectorSearchResult {
   key: string;
@@ -140,9 +146,6 @@ export interface VectorDistanceResult {
   vector: Float32Array;
 }
 
-/**
- * Persistent vector collection with a bounded in-memory decode cache.
- */
 export class VectorStore {
   private readonly storage: StorageEngine;
   private readonly prefix: string;
@@ -156,7 +159,6 @@ export class VectorStore {
     this.prefix = `__vec_${namespace || 'vectors'}__`;
   }
 
-  /** Persist a finite, non-empty Float32Array. Invalid values are ignored. */
   setVector(key: string, vector: Float32Array): void {
     if (!isValidKey(key) || !isValidVector(vector)) {
       return;
@@ -167,16 +169,12 @@ export class VectorStore {
       return;
     }
 
-    try {
-      const cachedVector = new Float32Array(vector);
-      this.storage.set(`${this.prefix}${key}`, `v:${base64}`);
-      this.vectorCache.set(key, cachedVector);
-    } catch {
-      // Storage fallbacks must not interrupt an AI response or render path.
-    }
+    // The cache owns its bytes so post-write caller mutation cannot diverge from disk.
+    const cachedVector = new Float32Array(vector);
+    this.storage.set(`${this.prefix}${key}`, `v:${base64}`);
+    this.vectorCache.set(key, cachedVector);
   }
 
-  /** Read a vector copy. Mutating the returned value never changes the cache. */
   getVector(key: string): Float32Array | null {
     if (!isValidKey(key)) {
       return null;
@@ -186,26 +184,19 @@ export class VectorStore {
     return vector ? new Float32Array(vector) : null;
   }
 
-  /** Remove one vector from persistence and the in-memory cache. */
   deleteVector(key: string): void {
     if (!isValidKey(key)) {
       return;
     }
 
     this.vectorCache.delete(key);
-    try {
-      this.storage.delete(`${this.prefix}${key}`);
-    } catch {
-      // Ignore unavailable storage backends; the memory cache is already clear.
-    }
+    this.storage.delete(`${this.prefix}${key}`);
   }
 
-  /** Release decoded vectors without removing their persisted embeddings. */
   clearCache(): void {
     this.vectorCache.clear();
   }
 
-  /** Search by descending cosine similarity. */
   searchSimilar(
     queryVector: Float32Array,
     topK: number = 5
@@ -227,7 +218,13 @@ export class VectorStore {
       }
       insertByScore(
         results,
-        { key, score: cosineSimilarity(queryVector, vector), vector },
+        {
+          key,
+          // Cache entries are validated on write/decode; re-validating them here
+          // would double the memory walk on every query.
+          score: cosineSimilarityUnchecked(queryVector, vector),
+          vector,
+        },
         limit
       );
     }
@@ -239,7 +236,6 @@ export class VectorStore {
     }));
   }
 
-  /** Search by ascending Euclidean distance. */
   searchNearest(
     queryVector: Float32Array,
     topK: number = 5
@@ -261,7 +257,11 @@ export class VectorStore {
       }
       insertByDistance(
         results,
-        { key, distance: euclideanDistance(queryVector, vector), vector },
+        {
+          key,
+          distance: euclideanDistanceUnchecked(queryVector, vector),
+          vector,
+        },
         limit
       );
     }
@@ -348,7 +348,6 @@ const insertByDistance = (
   }
 };
 
-/** Standalone cosine search helper for a vector collection. */
 export function searchSimilarVectors(
   queryVector: Float32Array,
   topK: number = 5,

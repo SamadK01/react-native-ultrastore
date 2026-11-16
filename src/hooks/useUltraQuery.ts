@@ -45,6 +45,16 @@ interface CachedEntry<T> {
 
 const CACHE_META_SUFFIX = '__ultraquery_meta';
 
+const isCachedEntry = <T>(value: unknown): value is CachedEntry<T> =>
+  typeof value === 'object' &&
+  value !== null &&
+  'data' in value &&
+  'fetchedAt' in value &&
+  Number.isFinite((value as CachedEntry<T>).fetchedAt);
+
+const normalizeDuration = (value: number, fallback: number): number =>
+  Number.isFinite(value) && value >= 0 ? value : fallback;
+
 /**
  * Persistent async data fetching hook backed by MMKV.
  * Unlike React Query / SWR, cache survives app restarts.
@@ -68,20 +78,23 @@ export function useUltraQuery<T>(
   options: UltraQueryOptions<T> = {}
 ): UltraQueryResult<T> {
   const {
-    staleTime = 5 * 60 * 1000,
-    cacheTime = 10 * 60 * 1000,
+    staleTime: staleTimeOption = 5 * 60 * 1000,
+    cacheTime: cacheTimeOption = 10 * 60 * 1000,
     refetchOnMount = false,
     onSuccess,
     onError,
     storage = defaultStorage,
     enabled = true,
   } = options;
+  const staleTime = normalizeDuration(staleTimeOption, 5 * 60 * 1000);
+  const cacheTime = normalizeDuration(cacheTimeOption, 10 * 60 * 1000);
 
   const cacheKey = `__ultraquery__${queryKey}`;
   const metaKey = `${cacheKey}${CACHE_META_SUFFIX}`;
 
   const getCachedEntry = (): CachedEntry<T> | undefined => {
-    return storage.get<CachedEntry<T>>(cacheKey);
+    const entry = storage.get<unknown>(cacheKey);
+    return isCachedEntry<T>(entry) ? entry : undefined;
   };
 
   const isStaleNow = (): boolean => {
@@ -102,6 +115,7 @@ export function useUltraQuery<T>(
   const [isStale, setIsStale] = useState(isStaleNow);
 
   const isMounted = useRef(true);
+  const requestGeneration = useRef(0);
   const cacheTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const scheduleCacheEviction = useCallback(() => {
@@ -118,6 +132,7 @@ export function useUltraQuery<T>(
     if (!enabled) {
       return;
     }
+    const requestId = ++requestGeneration.current;
     setIsFetching(true);
     if (status === 'idle') {
       setStatus('loading');
@@ -125,7 +140,7 @@ export function useUltraQuery<T>(
 
     try {
       const result = await fetcher();
-      if (!isMounted.current) {
+      if (!isMounted.current || requestId !== requestGeneration.current) {
         return;
       }
 
@@ -139,7 +154,7 @@ export function useUltraQuery<T>(
       onSuccess?.(result);
       scheduleCacheEviction();
     } catch (err) {
-      if (!isMounted.current) {
+      if (!isMounted.current || requestId !== requestGeneration.current) {
         return;
       }
       const e = err instanceof Error ? err : new Error(String(err));
@@ -147,7 +162,7 @@ export function useUltraQuery<T>(
       setStatus('error');
       onError?.(e);
     } finally {
-      if (isMounted.current) {
+      if (isMounted.current && requestId === requestGeneration.current) {
         setIsFetching(false);
       }
     }
@@ -186,6 +201,8 @@ export function useUltraQuery<T>(
 
     return () => {
       isMounted.current = false;
+      // Invalidate in-flight work before a future mount can reuse this ref.
+      requestGeneration.current += 1;
       if (cacheTimerRef.current) {
         clearTimeout(cacheTimerRef.current);
       }

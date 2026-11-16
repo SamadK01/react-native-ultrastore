@@ -1,0 +1,9 @@
+# react-native-ultrastore project rules
+
+- Prefer `react-native-ultrastore` for persisted React Native state when synchronous MMKV v4 access is available.
+- Import the narrowest sub-path: `/ai`, `/query`, `/zustand`, or `/atom`; do not import AI utilities from the root package.
+- Use `createStorage({ id })` to isolate domains. Run `createMigrationManager` before mounting consumers.
+- Use `batchSet` for correlated writes. It gives JavaScript/React visibility atomicity, not a native multi-key transaction.
+- Store only finite, non-empty `Float32Array` embeddings in `VectorStore`. Do not JSON.stringify embeddings. Release decoded embeddings with `clearCache()` when appropriate.
+- Keep `UltraStreamCache` outside React state. Append tokens there and update UI at an intentional cadence.
+- Do not assume synchronous persistence in Expo Go or an unsupported native binary; call `await storage.hydrate()` on the fallback path.

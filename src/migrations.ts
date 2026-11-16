@@ -30,7 +30,17 @@ export const createMigrationManager = async (
     targetVersion,
     versionKey = '@ultraStore:version',
   } = config;
-  const currentVersion = storage.get<number>(versionKey) || 0;
+  if (!Number.isInteger(targetVersion) || targetVersion < 0) {
+    throw new RangeError('targetVersion must be a non-negative integer');
+  }
+
+  const storedVersion = storage.get<unknown>(versionKey);
+  const currentVersion =
+    typeof storedVersion === 'number' &&
+    Number.isInteger(storedVersion) &&
+    storedVersion >= 0
+      ? storedVersion
+      : 0;
 
   if (currentVersion >= targetVersion) {
     return;
@@ -38,7 +48,13 @@ export const createMigrationManager = async (
 
   const versionsToRun = Object.keys(migrations)
     .map(Number)
-    .filter((v) => v > currentVersion && v <= targetVersion)
+    .filter(
+      (version) =>
+        Number.isInteger(version) &&
+        version > currentVersion &&
+        version <= targetVersion &&
+        typeof migrations[version] === 'function'
+    )
     .sort((a, b) => a - b);
 
   for (const version of versionsToRun) {

@@ -1,59 +1,65 @@
-/**
- * High-Frequency Streaming Token Cache (UltraStreamCache)
- * Allows realtime AI token accumulation without full document re-serialization
- */
-
 import { defaultStorage, StorageEngine } from '../storage';
 
+interface StreamBuffer {
+  chunks: string[];
+  snapshot: string;
+  dirty: boolean;
+}
+
 export class UltraStreamCache {
-  private storage: StorageEngine;
-  private activeStreams: Map<string, string[]> = new Map();
+  private readonly storage: StorageEngine;
+  private readonly activeStreams = new Map<string, StreamBuffer>();
 
   constructor(storage: StorageEngine = defaultStorage) {
     this.storage = storage;
   }
 
-  /**
-   * Append a single token to an active stream
-   */
   appendStreamToken(streamId: string, token: string): void {
-    if (!this.activeStreams.has(streamId)) {
-      this.activeStreams.set(streamId, []);
+    if (streamId.length === 0 || token.length === 0) {
+      return;
     }
-    this.activeStreams.get(streamId)!.push(token);
+
+    let stream = this.activeStreams.get(streamId);
+    if (!stream) {
+      stream = { chunks: [], snapshot: '', dirty: false };
+      this.activeStreams.set(streamId, stream);
+    }
+
+    stream.chunks.push(token);
+    stream.dirty = true;
   }
 
-  /**
-   * Get accumulated text string for an active stream
-   */
   getStream(streamId: string): string {
-    const tokens = this.activeStreams.get(streamId);
-    if (!tokens) {
+    const stream = this.activeStreams.get(streamId);
+    if (!stream) {
       return '';
     }
-    return tokens.join('');
+
+    // Token callbacks often cause several consumers to read the same stream.
+    // Materialize once per append burst instead of allocating one joined string per read.
+    if (stream.dirty) {
+      stream.snapshot = stream.chunks.join('');
+      stream.dirty = false;
+    }
+    return stream.snapshot;
   }
 
-  /**
-   * Get raw token array for an active stream
-   */
   getStreamTokens(streamId: string): string[] {
-    return this.activeStreams.get(streamId) || [];
+    const stream = this.activeStreams.get(streamId);
+    // Do not expose the backing array: a consumer splice would corrupt the snapshot cache.
+    return stream ? stream.chunks.slice() : [];
   }
 
-  /**
-   * Flush stream to persistent storage engine and clear active buffer
-   */
   flushStream(streamId: string): string {
     const text = this.getStream(streamId);
+    if (streamId.length === 0) {
+      return text;
+    }
     this.storage.set(streamId, text);
     this.activeStreams.delete(streamId);
     return text;
   }
 
-  /**
-   * Clear stream buffer without saving
-   */
   clearStream(streamId: string): void {
     this.activeStreams.delete(streamId);
   }

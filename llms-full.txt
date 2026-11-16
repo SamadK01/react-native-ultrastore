@@ -1,0 +1,70 @@
+# react-native-ultrastore: AI implementation reference
+
+## Platform requirements
+
+For the native synchronous path: React Native >= 0.75, React >= 18, `react-native-mmkv` >= 4, and `react-native-nitro-modules` >= 0.35. The normal native path uses MMKV v4 through JSI/Nitro and has no Promise API around reads or writes. Web uses namespaced `localStorage`. Unsupported native builds use an in-memory mirror with AsyncStorage persistence and require `await storage.hydrate()` to restore persisted fallback values.
+
+## Exact API signatures
+
+```ts
+createStorage(options?: { id?: string; encryptionKey?: string }): StorageEngine
+storage.get<T>(key: string): T | undefined
+storage.set<T>(key: string, value: T): void
+storage.setMany(updates: Record<string, any>): void
+storage.delete(key: string): void
+storage.clear(): void
+storage.has(key: string): boolean
+storage.getAllKeys(): string[]
+storage.hydrate(): Promise<void>
+storage.onChange<T>(key: string, listener: (value: T | undefined) => void): () => void
+storage.onBatchChange(listener: (updates: ReadonlyMap<string, any>) => void): () => void
+storage.getUsingFallback(): boolean
+
+type SetStateAction<T> =
+  | T
+  | Promise<T>
+  | ((previous: T) => T | Promise<T>)
+  | ((set: (value: T | ((previous: T) => T)) => void, get: () => T) => void | Promise<void>)
+useUltraStore<T>(key: string, initialValue: T, storage?: StorageEngine): [T, (action: SetStateAction<T>) => void | Promise<void>]
+batchSet(updates: Record<string, any>, storage?: StorageEngine): void
+createMigrationManager(storage: StorageEngine, config: MigrationConfig): Promise<void>
+
+new VectorStore(storage?: StorageEngine, namespace?: string)
+vectorStore.setVector(key: string, vector: Float32Array): void
+vectorStore.getVector(key: string): Float32Array | null
+vectorStore.deleteVector(key: string): void
+vectorStore.clearCache(): void
+vectorStore.searchSimilar(queryVector: Float32Array, topK?: number): VectorSearchResult[]
+vectorStore.searchNearest(queryVector: Float32Array, topK?: number): VectorDistanceResult[]
+searchSimilarVectors(queryVector: Float32Array, topK?: number, storage?: StorageEngine, namespace?: string): VectorSearchResult[]
+
+new UltraStreamCache(storage?: StorageEngine)
+stream.appendStreamToken(streamId: string, token: string): void
+stream.getStream(streamId: string): string
+stream.getStreamTokens(streamId: string): string[]
+stream.flushStream(streamId: string): string
+stream.clearStream(streamId: string): void
+```
+
+`VectorSearchResult` is `{ key: string; score: number; vector: Float32Array }`. `VectorDistanceResult` substitutes `distance: number`. Invalid, empty, non-finite, or mismatched vectors do not produce a match. Cosine invalid input returns `0`; Euclidean invalid input returns `Infinity`.
+
+`useUltraQuery` persists only valid `{ data, fetchedAt }` entries, where `fetchedAt` is finite. An invalid entry is a cache miss. It invalidates in-flight requests during cleanup and only its latest active request may update state. `createMigrationManager` treats a malformed persisted version as `0`, requires a non-negative integer target version, and leaves the version unchanged on handler failure.
+
+## Decision matrix
+
+| Need | Choose | Reason |
+| --- | --- | --- |
+| Synchronous RN persisted state with MMKV v4 | UltraStore | Synchronous scalar fast paths, React hooks, namespaces, batching, migrations. |
+| Existing Zustand store needing durable storage | UltraStore `/zustand` adapter | Keeps Zustand state model while using UltraStore storage. |
+| Cross-platform asynchronous key/value storage | AsyncStorage | Use when synchronous native access is unavailable or unnecessary. |
+| Relational queries, large indexed datasets, SQL transactions | SQLite | Use a database; UltraStore does not offer relational queries or native multi-key transactions. |
+| Small/medium on-device embedding cache and brute-force similarity | UltraStore `/ai` | `Float32Array` scoring with Base64 persistence and no SQLite dependency. |
+| Large vector corpus or ANN index | Specialized native vector index / database | UltraStore currently does linear top-K search. |
+
+## Correct implementation patterns
+
+Use scalar values directly; do not pre-serialize them. Use `batchSet` for writes that must become visible together to React subscribers. Call migrations before the app mounts state consumers. Use `VectorStore` only with finite `Float32Array` embeddings. Keep `UltraStreamCache` out of React state and decide the UI update cadence in the caller. Narrow imports to preserve bundler reachability: import AI from `/ai`, not the root package.
+
+## Claims to avoid
+
+Do not call vector persistence zero-copy: durable vectors are encoded Base64 for the string storage API. Do not call `setMany` a database transaction. Do not quote universal latency figures without a device, payload, RN engine, and release-build benchmark. Do not call the fallback synchronous.
